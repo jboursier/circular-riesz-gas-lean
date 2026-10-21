@@ -14,8 +14,8 @@ public import Mathlib.Probability.Moments.Variance
 # The comparator gradient and its inverse energy
 
 The analytic step in the proof of Lemma 5.2: the
-anchored covariance representation bounds the inverse energy of a smooth
-gradient by the scalar second moment. The affine comparator belongs to the
+anchored covariance representation identifies gradient inverse energy
+with variance. The affine comparator belongs to the
 smooth core on the bounded anchored simplex.
 -/
 
@@ -43,31 +43,6 @@ theorem gradient_energy_eq_variance (χ : HsPairPotentials n.succPNat c) (hc : 0
     (anchoredInverseValues (anchoredMeasureE χ) (anchoredInverse χ hc F.val.2).val y)
       ∂anchoredMeasureE χ) = _
   simpa only [pow_two] using h.symm
-
-/-- A globally smooth function has finite value and gradient norms on the
-bounded simplex, and the inverse energy of its gradient is bounded by its
-second moment. No boundary condition on the affine function is needed. -/
-theorem smooth_gradient_energy_le_secondMoment (χ : HsPairPotentials n.succPNat c) (hc : 0 < c)
-    (hPL : External.PrekopaLeindler) (hn : 0 < n) {C : ℝ} (hadm : HsAdmissible χ C)
-    (f : AnchoredEuclidean n → ℝ) (hf : ContDiff ℝ ∞ f) :
-    ∃ hg : MemLp (gradient f) 2 (anchoredMeasureE χ),
-      anchoredInverseEnergy χ hc (hg.toLp (gradient f)) ≤ ∫ y, f y ^ 2 ∂anchoredMeasureE χ := by
-  have := isProbabilityMeasure_anchoredMeasureE χ hc
-  have hs : WeightedSobolev.SmoothNearClosure (anchoredSimplex n) f :=
-    ⟨univ, isOpen_univ, subset_univ _, hf.contDiffOn⟩
-  obtain ⟨hm, hg⟩ := WeightedSobolev.memLp_of_smoothNearClosure
-    (isBounded_anchoredSimplex n) (ae_mem_anchoredSimplex χ) hs
-  have hH : IsAnchoredH1 χ f (gradient f) := by
-    refine ⟨hm, hg, fun _ => f, fun _ => hs, ?_, ?_⟩ <;> simp
-  let F : AnchoredSobolev χ := ⟨(hm.toLp f, hg.toLp (gradient f)),
-    WeightedSobolev.IsWeightedH1.congr hH hm.coeFn_toLp.symm hg.coeFn_toLp.symm⟩
-  refine ⟨hg, ?_⟩
-  have he := gradient_energy_eq_variance χ hc hPL hn hadm F
-  have hb := ProbabilityTheory.variance_le_expectation_sq (Lp.memLp F.val.1).aestronglyMeasurable
-  calc
-    _ = ProbabilityTheory.variance F.val.1 (anchoredMeasureE χ) := he
-    _ ≤ ∫ y, F.val.1 y ^ 2 ∂anchoredMeasureE χ := hb
-    _ = _ := integral_congr_ae (hm.coeFn_toLp.mono fun y hy => congrArg (fun r : ℝ => r ^ 2) hy)
 
 /-- Smoothness of the affine comparator for arbitrary fixed weights. -/
 theorem comparator_smooth (n : ℕ) (J : Finset (Fin (n + 1)))

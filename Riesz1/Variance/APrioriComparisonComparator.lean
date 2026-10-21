@@ -27,6 +27,14 @@ namespace Riesz1
 
 namespace APrioriComparison
 
+/-- The anchored vector of a configuration is its ordered lift shifted
+by the first particle, including at the pinned coordinate. -/
+theorem anchorVector_anchorMap (n : ℕ) (X : Configuration n.succPNat) :
+    anchorVector (anchorMap n.succPNat X) =
+      fun i => X.val i - X.val ⟨0, n.succPNat.pos⟩ := by
+  have he := anchoredLift_eq_anchorVector n (anchorMap n.succPNat X)
+  exact he.symm.trans (anchoredLift_anchorMap X)
+
 /-- Weighted anchored errors on the good event. This helper permits any
 nonnegative weights. The specific weights are supplied below. -/
 theorem comparator_good_le {N : ℕ+} {K s γ ε : ℝ} (hK : 1 ≤ K)
@@ -61,22 +69,6 @@ theorem hasFDerivAt_comparator (n : ℕ) (J : Finset (Fin (n.succPNat : ℕ)))
   ext z
   simp only [Finset.sum_apply]
 
-/-- The differential of the original comparator. -/
-theorem linearComparator_hasFDerivAt (n : ℕ) (K s lam ε : ℝ)
-    (J : Finset (Fin (n.succPNat : ℕ))) (y : Fin n → ℝ) :
-    HasFDerivAt (fun z => linearComparator n.succPNat K s lam ε J (anchorVector z))
-      (∑ i ∈ J, (comparisonWeight n.succPNat K s lam ε i * ((n : ℝ) + 1)) • anchorCoord n i) y := by
-  simpa only [linearComparator, Nat.succPNat_coe, Nat.cast_succ] using
-    hasFDerivAt_comparator n J (comparisonWeight n.succPNat K s lam ε) y
-
-/-- The differential of the augmented comparator. -/
-theorem augmentedLinearComparator_hasFDerivAt (n : ℕ) (K s lam ε : ℝ)
-    (J : Finset (Fin (n.succPNat : ℕ))) (y : Fin n → ℝ) :
-    HasFDerivAt (fun z => augmentedLinearComparator n.succPNat K s lam ε J (anchorVector z))
-      (∑ i ∈ J, (augmentedComparisonWeight n.succPNat K s lam ε i * ((n : ℝ) + 1)) •
-        anchorCoord n i) y := by
-  simpa only [augmentedLinearComparator, Nat.succPNat_coe, Nat.cast_succ] using
-    hasFDerivAt_comparator n J (augmentedComparisonWeight n.succPNat K s lam ε) y
 
 end APrioriComparison
 

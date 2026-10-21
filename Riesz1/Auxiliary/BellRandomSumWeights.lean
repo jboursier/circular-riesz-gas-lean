@@ -6,13 +6,14 @@ Authors: Jeanne Boursier
 module
 
 public import Riesz1.Auxiliary.BellRandomSumComparison
-public import Riesz1.ToMathlib.FourthMomentTail
+public import Riesz1.ToMathlib.LogConcave.EventSecondMoment
 
 /-!
-# Inverse powers bounding a kernel difference
+# Inverse moments for the bad event
 
-The four endpoint terms in `bell_kernel_difference_bound` have a uniform
-second moment. This uses inverse block moments and no rigidity.
+The values of the averaged kernel at a block and at its lattice length are
+controlled by inverse powers. Their second moment uses inverse block moments
+of order twice the Riesz exponent.
 -/
 
 @[expose] public section
@@ -23,22 +24,22 @@ open MeasureTheory
 
 namespace Riesz1
 
-/-- The four endpoint inverse powers in the global mean value estimate. -/
-def bellComparisonWeight (s : ℝ) {N : ℕ+} (j : ℤ) (k : ℕ) (X : Configuration N) : ℝ :=
-  blockLength X j k ^ (-1 - s) +
-    blockLength X (j + k) ((N : ℕ) - k) ^ (-1 - s) +
-      (k : ℝ) ^ (-1 - s) + (((N : ℕ) - k : ℕ) : ℝ) ^ (-1 - s)
+/-- Inverse powers controlling the two kernel values. -/
+def bellValueWeight (s : ℝ) {N : ℕ+} (j : ℤ) (k : ℕ) (X : Configuration N) : ℝ :=
+  blockLength X j k ^ (-s) +
+    blockLength X (j + k) ((N : ℕ) - k) ^ (-s) +
+      (k : ℝ) ^ (-s) + (((N : ℕ) - k : ℕ) : ℝ) ^ (-s)
 
-lemma bellComparisonWeight_nonneg (s : ℝ) {N : ℕ+} (j : ℤ) {k : ℕ}
+lemma bellValueWeight_nonneg (s : ℝ) {N : ℕ+} (j : ℤ) {k : ℕ}
     (hk : 0 < k) (hkN : k < (N : ℕ)) (X : Configuration N) :
-    0 ≤ bellComparisonWeight s j k X := by
-  unfold bellComparisonWeight
+    0 ≤ bellValueWeight s j k X := by
+  unfold bellValueWeight
   have h1 := (blockLength_pos X j hk).le
   have h2 := (blockLength_pos X (j + k) (show 0 < (N : ℕ) - k by omega)).le
   positivity
 
-lemma measurable_bellComparisonWeight (s : ℝ) (N : ℕ+) (j : ℤ) (k : ℕ) :
-    Measurable (@bellComparisonWeight s N j k) := by
+lemma measurable_bellValueWeight (s : ℝ) (N : ℕ+) (j : ℤ) (k : ℕ) :
+    Measurable (@bellValueWeight s N j k) := by
   exact ((((measurable_blockLength j k).pow_const _).add
     ((measurable_blockLength (j + k) ((N : ℕ) - k)).pow_const _)).add_const _).add_const _
 
@@ -48,16 +49,16 @@ lemma bell_four_sum_sq_le (a b c d : ℝ) :
   nlinarith only [sq_nonneg (a - b), sq_nonneg (a - c), sq_nonneg (a - d),
     sq_nonneg (b - c), sq_nonneg (b - d), sq_nonneg (c - d)]
 
-/-- The second moment of the endpoint comparison weight is of order
-`k^(-2-2s)` for every short block. -/
-theorem bell_comparison_weight_second_moment (P : Parameters) :
+/-- The second moment of the value bound is of order `k^(-2s)`
+for every short block. -/
+theorem bell_value_weight_second_moment (P : Parameters) :
     ∃ M : ℝ, 0 < M ∧ ∀ (_hPL : External.PrekopaLeindler) (N : ℕ+) (j : ℤ)
       (k : ℕ), 1 ≤ k → k ≤ (N : ℕ) / 2 →
-      Integrable (fun X : Configuration N => bellComparisonWeight P.1.2 j k X ^ 2)
+      Integrable (fun X : Configuration N => bellValueWeight P.1.2 j k X ^ 2)
         (gibbsMeasure P N) ∧
-      (∫ X : Configuration N, bellComparisonWeight P.1.2 j k X ^ 2 ∂gibbsMeasure P N) ≤
-        M * (k : ℝ) ^ (-2 - 2 * P.1.2) := by
-  let p := 2 + 2 * P.1.2
+      (∫ X : Configuration N, bellValueWeight P.1.2 j k X ^ 2 ∂gibbsMeasure P N) ≤
+        M * (k : ℝ) ^ (-2 * P.1.2) := by
+  let p := 2 * P.1.2
   have hp : 0 < p := by dsimp [p]; linarith [P.2.2.1]
   obtain ⟨Cm, hCm, hm⟩ := inverse_blocks_uniform P hp
   refine ⟨8 * (Cm + 1), by positivity, ?_⟩
@@ -67,8 +68,8 @@ theorem bell_comparison_weight_second_moment (P : Parameters) :
   have hkN' : k < (N : ℕ) := by omega
   have hkcomp : 0 < (N : ℕ) - k := by omega
   have hcomp : (k : ℝ) ≤ (((N : ℕ) - k : ℕ) : ℝ) := by exact_mod_cast (show k ≤ (N : ℕ) - k by omega)
-  have he : (-1 - P.1.2) * 2 = -p := by dsimp [p]; ring
-  have he' : -p = -2 - 2 * P.1.2 := by dsimp [p]; ring
+  have he : (-P.1.2) * 2 = -p := by dsimp [p]; ring
+  have he' : -p = -2 * P.1.2 := by dsimp [p]; ring
   obtain ⟨hi, hb⟩ := hm hPL N j k hk
   obtain ⟨hi', hb'⟩ := hm hPL N (j + k) ((N : ℕ) - k) hkcomp
   have hbi : (∫ X : Configuration N, blockLength X j k ^ (-p) ∂gibbsMeasure P N) ≤
@@ -90,11 +91,11 @@ theorem bell_comparison_weight_second_moment (P : Parameters) :
       (k : ℝ) ^ (-p) + (((N : ℕ) - k : ℕ) : ℝ) ^ (-p))
   have hiB : Integrable B (gibbsMeasure P N) :=
     ((((hi.add hi').add (integrable_const _)).add (integrable_const _)).const_mul 4)
-  have hbd (X : Configuration N) : bellComparisonWeight P.1.2 j k X ^ 2 ≤ B X := by
-    have hh := bell_four_sum_sq_le (blockLength X j k ^ (-1 - P.1.2))
-      (blockLength X (j + k) ((N : ℕ) - k) ^ (-1 - P.1.2))
-      ((k : ℝ) ^ (-1 - P.1.2)) ((((N : ℕ) - k : ℕ) : ℝ) ^ (-1 - P.1.2))
-    have hpow (z : ℝ) (hz : 0 ≤ z) : (z ^ (-1 - P.1.2)) ^ 2 = z ^ (-p) := by
+  have hbd (X : Configuration N) : bellValueWeight P.1.2 j k X ^ 2 ≤ B X := by
+    have hh := bell_four_sum_sq_le (blockLength X j k ^ (-P.1.2))
+      (blockLength X (j + k) ((N : ℕ) - k) ^ (-P.1.2))
+      ((k : ℝ) ^ (-P.1.2)) ((((N : ℕ) - k : ℕ) : ℝ) ^ (-P.1.2))
+    have hpow (z : ℝ) (hz : 0 ≤ z) : (z ^ (-P.1.2)) ^ 2 = z ^ (-p) := by
       rw [← Real.rpow_natCast, ← Real.rpow_mul hz]
       norm_num only [Nat.cast_ofNat]
       rw [he]
@@ -102,9 +103,9 @@ theorem bell_comparison_weight_second_moment (P : Parameters) :
       hpow _ (blockLength_pos X (j + k) hkcomp).le,
       hpow _ hk0.le, hpow _ (by positivity)] at hh
     exact hh
-  have hiW : Integrable (fun X : Configuration N => bellComparisonWeight P.1.2 j k X ^ 2)
+  have hiW : Integrable (fun X : Configuration N => bellValueWeight P.1.2 j k X ^ 2)
       (gibbsMeasure P N) := by
-    apply hiB.mono' ((measurable_bellComparisonWeight _ _ _ _).pow_const 2).aestronglyMeasurable
+    apply hiB.mono' ((measurable_bellValueWeight _ _ _ _).pow_const 2).aestronglyMeasurable
     exact ae_of_all _ fun X => by
       rw [Real.norm_of_nonneg (sq_nonneg _)]
       exact hbd X

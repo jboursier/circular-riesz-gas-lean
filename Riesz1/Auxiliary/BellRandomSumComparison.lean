@@ -9,11 +9,11 @@ public import Riesz1.Auxiliary.BellRandomSumIntegrability
 public import Mathlib.Analysis.Calculus.MeanValue
 
 /-!
-# A global comparison of the averaged kernel at two points
+# Comparison on the good event
 
-The mean value estimate used for the random-sum part of Lemma B.1. The four
-endpoint inverse powers bound the derivative on the entire intervening segment.
-There is no restriction to a good event or to large block lengths.
+When a short block stays within half its lattice length, the segment joining
+it to that length stays away from both singularities. The derivative bound
+then applies at the lattice scale.
 -/
 
 public section
@@ -25,59 +25,53 @@ open scoped ContDiff
 
 namespace Riesz1
 
-/-- A decreasing power on an interval is bounded by the sum of its endpoint powers. -/
-lemma bell_rpow_segment_bound {a b z p : ℝ} (ha : 0 < a) (hb : 0 < b)
-    (hz : z ∈ uIcc a b) (hp : p ≤ 0) : z ^ p ≤ a ^ p + b ^ p := by
-  have hm : 0 < min a b := lt_min ha hb
-  have h := Real.rpow_le_rpow_of_nonpos hm hz.1 hp
-  exact h.trans (rpow_min_le_add a b p ha hb)
-
-/-- The derivative bound controls differences globally on `(0,N)`. This estimate
-uses only endpoint inverse powers, which have uniform Gibbs moments. -/
-lemma bell_kernel_difference_bound {s C : ℝ} (hs : 0 < s) (hs1 : s < 1)
+/-- The derivative estimate at the block scale controls the good event. -/
+lemma bell_kernel_good_event {s C : ℝ} (hs : 0 < s) (hs1 : s < 1)
     {N : ℕ} (hN : 0 < N) {ℓ : ℝ} (hℓ : 0 < ℓ) {ψ : ℝ → ℝ}
     (hψ : ContDiff ℝ ∞ ψ) (hC : 0 ≤ C)
     (hd : ∀ z ∈ Ioo (0 : ℝ) N,
       |deriv (bellKernel s N ℓ ψ) z| ≤
         C * bellConstant ℓ ψ * min z ((N : ℝ) - z) ^ (-1 - s))
-    {x y : ℝ} (hx : x ∈ Ioo (0 : ℝ) N) (hy : y ∈ Ioo (0 : ℝ) N) :
-    |bellKernel s N ℓ ψ x - bellKernel s N ℓ ψ y| ≤
-      C * bellConstant ℓ ψ *
-        (x ^ (-1 - s) + ((N : ℝ) - x) ^ (-1 - s) +
-          y ^ (-1 - s) + ((N : ℝ) - y) ^ (-1 - s)) * |x - y| := by
+    {x k t : ℝ} (hk : 0 < k) (hkN : k ≤ (N : ℝ) / 2)
+    (ht : k ^ t ≤ k / 2) (hx : |x - k| ≤ k ^ t) :
+    |bellKernel s N ℓ ψ x - bellKernel s N ℓ ψ k| ≤
+      C * bellConstant ℓ ψ * (1 / 2 : ℝ) ^ (-1 - s) * k ^ (-1 - s + t) := by
   have hA : 0 ≤ C * bellConstant ℓ ψ :=
     mul_nonneg hC (mul_nonneg hℓ.le (bellEnergy_nonneg hℓ))
-  have hsub : uIcc y x ⊆ Ioo (0 : ℝ) N :=
-    fun z hz => ⟨(lt_min hy.1 hx.1).trans_le hz.1,
-      hz.2.trans_lt (max_lt hy.2 hx.2)⟩
-  have hb : ∀ z ∈ uIcc y x, |deriv (bellKernel s N ℓ ψ) z| ≤
-      C * bellConstant ℓ ψ *
-        (x ^ (-1 - s) + ((N : ℝ) - x) ^ (-1 - s) +
-          y ^ (-1 - s) + ((N : ℝ) - y) ^ (-1 - s)) := by
-    intro z hz
-    have hzN := hsub hz
-    have hz' : (N : ℝ) - z ∈ uIcc ((N : ℝ) - x) ((N : ℝ) - y) := by
-      rcases le_total y x with h | h
-      · rw [uIcc_of_le h] at hz
-        rw [uIcc_of_le (sub_le_sub_left h _)]
-        constructor <;> linarith [hz.1, hz.2]
-      · rw [uIcc_of_ge h] at hz
-        rw [uIcc_of_ge (sub_le_sub_left h _)]
-        constructor <;> linarith [hz.1, hz.2]
-    have h1 := bell_rpow_segment_bound hy.1 hx.1 hz (show -1 - s ≤ 0 by linarith)
-    have h2 := bell_rpow_segment_bound (sub_pos.mpr hx.2) (sub_pos.mpr hy.2) hz'
-      (show -1 - s ≤ 0 by linarith)
-    refine (hd z hzN).trans (mul_le_mul_of_nonneg_left ?_ hA)
-    calc min z ((N : ℝ) - z) ^ (-1 - s)
-        ≤ z ^ (-1 - s) + ((N : ℝ) - z) ^ (-1 - s) :=
-          rpow_min_le_add _ _ _ hzN.1 (sub_pos.mpr hzN.2)
-      _ ≤ x ^ (-1 - s) + ((N : ℝ) - x) ^ (-1 - s) +
-          y ^ (-1 - s) + ((N : ℝ) - y) ^ (-1 - s) := by linarith
+  have hx' := abs_le.mp (hx.trans ht)
+  have hseg (z : ℝ) (hz : z ∈ uIcc k x) :
+      k / 2 ≤ min z ((N : ℝ) - z) := by
+    refine le_min ?_ ?_
+    · exact (le_min (by linarith) (by linarith)).trans hz.1
+    · have hh := hz.2.trans (max_le (by linarith : k ≤ (N : ℝ) - k / 2)
+          (by linarith : x ≤ (N : ℝ) - k / 2))
+      linarith
+  have hsub (z : ℝ) (hz : z ∈ uIcc k x) : z ∈ Ioo (0 : ℝ) N := by
+    have hh := hseg z hz
+    have h1 := hh.trans (min_le_left _ _)
+    have h2 := hh.trans (min_le_right _ _)
+    constructor <;> linarith
+  have hb (z : ℝ) (hz : z ∈ uIcc k x) :
+      |deriv (bellKernel s N ℓ ψ) z| ≤
+        C * bellConstant ℓ ψ * (k / 2) ^ (-1 - s) :=
+    (hd z (hsub z hz)).trans (mul_le_mul_of_nonneg_left
+      (Real.rpow_le_rpow_of_nonpos (by positivity) (hseg z hz) (by linarith)) hA)
   have hm := Convex.norm_image_sub_le_of_norm_deriv_le
-    (fun z hz => (hasDerivAt_bellKernel hs hs1 hN hℓ hψ (hsub hz)).differentiableAt)
+    (fun z hz => (hasDerivAt_bellKernel hs hs1 hN hℓ hψ (hsub z hz)).differentiableAt)
     (fun z hz => by simpa only [Real.norm_eq_abs] using hb z hz)
-    (convex_uIcc y x) (left_mem_uIcc) (right_mem_uIcc)
-  simpa only [Real.norm_eq_abs] using hm
+    (convex_uIcc k x) left_mem_uIcc right_mem_uIcc
+  have hm' : |bellKernel s N ℓ ψ x - bellKernel s N ℓ ψ k| ≤
+      C * bellConstant ℓ ψ * (k / 2) ^ (-1 - s) * |x - k| := by
+    simpa only [Real.norm_eq_abs] using hm
+  have hbound : |bellKernel s N ℓ ψ x - bellKernel s N ℓ ψ k| ≤
+      C * bellConstant ℓ ψ * (k / 2) ^ (-1 - s) * k ^ t :=
+    hm'.trans
+      (mul_le_mul_of_nonneg_left hx (by positivity))
+  convert hbound using 1
+  rw [show k / 2 = (1 / 2 : ℝ) * k by ring, Real.mul_rpow (by norm_num) hk.le]
+  rw [show C * bellConstant ℓ ψ * ((1 / 2 : ℝ) ^ (-1 - s) * k ^ (-1 - s)) * k ^ t =
+    C * bellConstant ℓ ψ * (1 / 2 : ℝ) ^ (-1 - s) * (k ^ (-1 - s) * k ^ t) by ring,
+    ← Real.rpow_add hk]
 
 end Riesz1
 

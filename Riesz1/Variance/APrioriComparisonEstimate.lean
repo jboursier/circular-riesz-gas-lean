@@ -6,15 +6,15 @@ Authors: Jeanne Boursier
 module
 
 public import Riesz1.Variance.APrioriComparisonBound
-public import Riesz1.Variance.APrioriComparisonTilt
+public import Riesz1.Variance.APrioriComparisonControl
 public import Riesz1.Variance.APrioriComparisonAdmissible
 
 /-!
 # Both a priori comparison energy estimates
 
 Part of Lemma 5.2, the energy assertion and its
-augmented version. The global comparator moments avoid differentiating
-the cutoff product. All scales `K ≥ 1` are allowed, generalizing `K = Nℓ ≤ N`.
+augmented version. The cutoff comparator variance and its cutoff-gradient
+energy control the dominated field. All scales `K ≥ 1` are allowed, generalizing `K = Nℓ ≤ N`.
 The only hypotheses are the Bakry–Émery criterion `hBE` and the Prékopa–Leindler
 inequality `hPL`.
 -/
@@ -54,9 +54,9 @@ theorem a_priori_comparison_energy (hBE : External.BakryEmery) (hPL : External.P
             (hsRieszPairPotentials_curvature_pos n.succPNat P.2.1 (parametersExponent P))
             (hv.toLp (fun y => anchoredCutoff n.succPNat P.val.2 K γ ε (WithLp.ofLp y) • v y)) ≤
               C * K ^ ((2 * a + 4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2) := by
-  obtain ⟨C₀, hC₀, hmoment⟩ := APrioriComparison.comparator_tilted_secondMoment
+  obtain ⟨C₀, hC₀, hcontrol⟩ := APrioriComparison.comparator_cutoff_estimates
     hBE hPL P lam γ ε hlam hγ hε hε1
-  refine ⟨M ^ 2 * C₀, by positivity, fun n hn θ hθ K hK J hJ w hw v hvm hz hb => ?_⟩
+  refine ⟨4 * M ^ 2 * C₀, by positivity, fun n hn θ hθ K hK J hJ w hw v hvm hz hb => ?_⟩
   have hK0 : 0 < K := by linarith
   let χ := nearestTiltedPairs P n.succPNat hθ K γ ε hK0
   have hc := hsRieszPairPotentials_curvature_pos n.succPNat P.2.1 (parametersExponent P)
@@ -66,34 +66,34 @@ theorem a_priori_comparison_energy (hBE : External.BakryEmery) (hPL : External.P
     rcases hw with rfl | rfl
     · exact fun i => comparisonWeight_nonneg (N := n.succPNat) hK0.le i
     · exact fun i => augmentedComparisonWeight_nonneg (N := n.succPNat) hK0.le i
+  obtain ⟨he, hvar, hcut⟩ := hcontrol n hn θ hθ K hK J hJ w hw
   obtain ⟨hv, henergy⟩ := APrioriComparison.cutoff_energy_le_comparator χ hc hPL hn hadm
-    P.val.2 K γ ε (M * K ^ (a * ε)) (by positivity) J w hw0 v hvm hz hb
+    P.val.2 K γ ε (M * K ^ (a * ε)) hK hε.le (by positivity) J w hw0 v hvm hz hb he
   refine ⟨hv, henergy.trans ?_⟩
-  let f := fun y : AnchoredEuclidean n =>
-    ∑ i ∈ J, w i * (((n : ℝ) + 1) * anchorVector (WithLp.ofLp y) i - (i : ℕ))
-  have hsq : ∫⁻ y, ENNReal.ofReal (f y ^ 2) ∂anchoredMeasureE χ ≤
-      ENNReal.ofReal (C₀ * K ^ ((4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2)) := by
-    have hp := hmoment n hn θ hθ K hK J hJ
-    rcases hw with rfl | rfl
-    · simpa only [f, χ, linearComparator, Nat.succPNat_coe, Nat.cast_succ] using hp.1
-    · simpa only [f, χ, augmentedLinearComparator, Nat.succPNat_coe, Nat.cast_succ] using hp.2
-  have hreal : ∫ y, f y ^ 2 ∂anchoredMeasureE χ ≤
-      C₀ * K ^ ((4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2) := by
-    rw [integral_eq_lintegral_of_nonneg_ae (Filter.Eventually.of_forall fun y => sq_nonneg (f y))
-      ((APrioriComparison.comparator_smooth n J w).continuous.measurable.pow_const 2).aestronglyMeasurable]
-    have h := ENNReal.toReal_mono ENNReal.ofReal_ne_top hsq
-    simpa only [ENNReal.toReal_ofReal (show 0 ≤ C₀ * K ^ ((4 + 2 * γ) * ε) *
-      (K ^ (2 * lam) + K ^ P.val.2) by positivity)] using h
+  have hrem : K ^ (-10 : ℝ) ≤
+      K ^ ((4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2) := by
+    have h1 : K ^ (-10 : ℝ) ≤ K ^ ((4 + 2 * γ) * ε) :=
+      Real.rpow_le_rpow_of_exponent_le hK (by nlinarith)
+    have h2 : 1 ≤ K ^ (2 * lam) + K ^ P.val.2 :=
+      (Real.one_le_rpow hK (by positivity : 0 ≤ 2 * lam)).trans
+        (le_add_of_nonneg_right (by positivity))
+    exact h1.trans (le_mul_of_one_le_right (by positivity) h2)
+  have hcut' := hcut.trans (mul_le_mul_of_nonneg_left hrem hC₀.le)
+  replace hcut' := hcut'.trans_eq
+    (mul_assoc C₀ (K ^ ((4 + 2 * γ) * ε)) (K ^ (2 * lam) + K ^ P.val.2)).symm
   have hpow : (K ^ (a * ε)) ^ 2 * K ^ ((4 + 2 * γ) * ε) =
       K ^ ((2 * a + 4 + 2 * γ) * ε) := by
     rw [← Real.rpow_natCast, ← Real.rpow_mul hK0.le, ← Real.rpow_add hK0]
     congr 1
     ring
   calc
-    _ ≤ (M * K ^ (a * ε)) ^ 2 *
+    _ ≤ 2 * (M * K ^ (a * ε)) ^ 2 *
+        (C₀ * K ^ ((4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2)) +
+        2 * (M * K ^ (a * ε)) ^ 2 *
         (C₀ * K ^ ((4 + 2 * γ) * ε) * (K ^ (2 * lam) + K ^ P.val.2)) :=
-      mul_le_mul_of_nonneg_left hreal (sq_nonneg _)
-    _ = (M ^ 2 * C₀) * ((K ^ (a * ε)) ^ 2 * K ^ ((4 + 2 * γ) * ε)) *
+      add_le_add (mul_le_mul_of_nonneg_left hvar (by positivity))
+        (mul_le_mul_of_nonneg_left hcut' (by positivity))
+    _ = (4 * M ^ 2 * C₀) * ((K ^ (a * ε)) ^ 2 * K ^ ((4 + 2 * γ) * ε)) *
         (K ^ (2 * lam) + K ^ P.val.2) := by ring
     _ = _ := by rw [hpow]
 

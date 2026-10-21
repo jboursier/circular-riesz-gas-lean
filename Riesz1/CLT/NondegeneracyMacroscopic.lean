@@ -6,16 +6,20 @@ Authors: Jeanne Boursier
 module
 
 public import Riesz1.CLT.NondegeneracyZero
-public import Riesz1.ToMathlib.Mollifier.RegularizationSobolev
+public import Riesz1.Variance.RegUniformMacroscopic
+public import Riesz1.ToMathlib.CircleSobolevTriangle
+public import Riesz1.ToMathlib.CircleSobolevTwoTerm
 public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+import all Riesz1.ToMathlib.Mollifier.RegularizationSobolev
 import all Riesz1.Variance.LoopMaster
 
 /-!
 # Macroscopic nondegeneracy of the regularized variance
 
 The macroscopic positive-variance alternative of the nondegeneracy step in the proof of
-Theorem 3. A single nonzero Fourier mode supplies a uniform
-lower bound. Contraction of every mode supplies the upper bound.
+Theorem 3. The fixed unregularized standard deviation is positive. The Sobolev
+smoothing error and the reverse triangle inequality give uniform positive lower
+and finite upper bounds for the regularized standard deviation.
 -/
 
 public section
@@ -58,41 +62,54 @@ lemma nondegeneracy_unit_lift_coeff {ρ : ℝ → ℝ} (hρ : IsMollifier ρ)
     (cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩) (fun _ => rfl)
     (nondegeneracy_unit_lift_coe hρ hh p) k
 
-lemma nondegeneracy_unit_variance_le {ρ : ℝ → ℝ} (hρ : IsMollifier ρ)
-    {h : ℝ} (hh : 0 < h) (P : Parameters) (p : Profile) :
-    cltVariance P ⟨1, by norm_num⟩
-      ⟨(fun x => (cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩ x : ℂ)),
-        Internal.nondegeneracy_regCircle_memLp hρ unitLength hh ⟨p.val, p.property⟩⟩ ≤ circleVariance P p ⟨1, by norm_num⟩ := by
-  unfold cltVariance circleVariance
-  simp only [testAtScale, ite_true]
-  refine mul_le_mul le_rfl ?_ zero_le zero_le
-  unfold circleSobolevSq
-  apply ENNReal.tsum_le_tsum
-  intro k
-  by_cases hk : k = 0
-  · simp [hk]
-  · simp only [hk, ite_false, nondegeneracy_unit_lift_coeff, norm_mul,
-      Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
-    apply ENNReal.ofReal_le_ofReal
-    have hm := mollifierFT_sq_le_one hρ.isCircleMollifier (h * k)
-    have hw : 0 ≤ |(k : ℝ)| ^ (2 * ((1 - P.val.2) / 2)) *
-        ‖fourierCoeff (fun x => (p.val x : ℂ)) k‖ ^ 2 := by positivity
-    nlinarith [mul_le_mul_of_nonneg_left hm hw]
-
-lemma nondegeneracy_exists_nonzero_coeff (p : Profile)
-    (hp : ¬ ∃ c : ℝ, p.val =ᵐ[volume] fun _ => c) :
-    ∃ k : ℤ, k ≠ 0 ∧ fourierCoeff (fun x => (p.val x : ℂ)) k ≠ 0 := by
-  by_contra! hh
-  apply hp
-  have hzero : circleSobolevSq 1 ⟨(fun x => (p.val x : ℂ)), p.property⟩ = 0 := by
+/-- The reverse triangle inequality transfers a small Sobolev error to the
+standard deviations. Finiteness of the original and the difference also gives
+finiteness of the second profile. -/
+lemma nondegeneracy_unit_variance_comparison (P : Parameters)
+    (f g : {f : UnitAddCircle → ℂ // MemLp f 2 volume})
+    (hf : cltVariance P ⟨1, by norm_num⟩ f < ⊤)
+    (he : cltVariance P ⟨1, by norm_num⟩ (subL2 f g) < ⊤) :
+    cltVariance P ⟨1, by norm_num⟩ g < ⊤ ∧
+      |Real.sqrt (cltVariance P ⟨1, by norm_num⟩ f).toReal -
+        Real.sqrt (cltVariance P ⟨1, by norm_num⟩ g).toReal| ≤
+          Real.sqrt (cltVariance P ⟨1, by norm_num⟩ (subL2 f g)).toReal := by
+  let A := (2 * Real.pi) ^ (1 - P.val.2) /
+    (2 * P.val.1 * rieszConstant (parametersExponent P))
+  have hA : 0 < A := by
+    simpa only [Real.one_rpow, mul_one] using
+      nondegeneracy_variance_prefactor_pos P ⟨1, by norm_num⟩
+  have hvar (u : {u : UnitAddCircle → ℂ // MemLp u 2 volume}) :
+      cltVariance P ⟨1, by norm_num⟩ u =
+        ENNReal.ofReal A * circleSobolevSq ((1 - P.val.2) / 2) u := by
+    simp only [cltVariance, Real.one_rpow, mul_one, A]
+  have hfin (u : {u : UnitAddCircle → ℂ // MemLp u 2 volume})
+      (hu : cltVariance P ⟨1, by norm_num⟩ u < ⊤) :
+      circleSobolevSq ((1 - P.val.2) / 2) u ≠ ⊤ := by
+    intro htop
+    rw [hvar, htop, ENNReal.mul_top (ENNReal.ofReal_pos.mpr hA).ne'] at hu
+    exact hu.false
+  have hSf := hfin f hf
+  have hSe := hfin (subL2 f g) he
+  have hsub : circleSobolevSq ((1 - P.val.2) / 2) (subL2 g f) =
+      circleSobolevSq ((1 - P.val.2) / 2) (subL2 f g) := by
     unfold circleSobolevSq
-    apply ENNReal.tsum_eq_zero.mpr
+    apply tsum_congr
     intro k
-    by_cases hk : k = 0
-    · simp [hk]
-    · simp [hk, hh k hk]
-  obtain ⟨c, hc⟩ := (circleSobolevSq_eq_zero_iff 1 _).mp hzero
-  exact ⟨c.re, hc.mono fun x hx => congrArg Complex.re hx⟩
+    simp only [fourierCoeff_subL2, norm_sub_rev]
+  have hSg : circleSobolevSq ((1 - P.val.2) / 2) g ≠ ⊤ := by
+    have hb := circleSobolevSq_le_two_mul_add ((1 - P.val.2) / 2) g f
+    rw [hsub] at hb
+    exact ne_top_of_le_ne_top
+      (ENNReal.mul_ne_top (by norm_num) (ENNReal.add_ne_top.mpr ⟨hSf, hSe⟩)) hb
+  refine ⟨?_, ?_⟩
+  · rw [hvar]
+    exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (lt_top_iff_ne_top.mpr hSg)
+  · simp only [hvar, ENNReal.toReal_mul, ENNReal.toReal_ofReal hA.le,
+      Real.sqrt_mul hA.le, ← mul_sub, abs_mul,
+      abs_of_nonneg (Real.sqrt_nonneg A)]
+    exact mul_le_mul_of_nonneg_left
+      (circleSobolevSq_sqrt_sub_le ((1 - P.val.2) / 2) f g hSf hSg hSe)
+      (Real.sqrt_nonneg A)
 
 end Internal
 
@@ -115,82 +132,66 @@ theorem clt_nondegeneracy_macroscopic (P : Parameters) (p : Profile)
           ⟨(fun x => (cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩ x : ℂ)),
             Internal.nondegeneracy_regCircle_memLp hρ unitLength hh ⟨p.val, p.property⟩⟩
         V < ⊤ ∧ c ≤ Real.sqrt V.toReal ∧ Real.sqrt V.toReal ≤ C := by
-  obtain ⟨k, hk, hpk⟩ := Internal.nondegeneracy_exists_nonzero_coeff p hp
-  let A := (2 * Real.pi) ^ (1 - P.val.2) /
-    (2 * P.val.1 * rieszConstant (parametersExponent P))
-  have hA : 0 < A := by
-    simpa only [Real.one_rpow, mul_one] using
-      Internal.nondegeneracy_variance_prefactor_pos P ⟨1, by norm_num⟩
-  let w := |(k : ℝ)| ^ (1 - P.val.2) *
-    ‖fourierCoeff (fun x => (p.val x : ℂ)) k‖ ^ 2
-  have hw : 0 < w := mul_pos
-    (Real.rpow_pos_of_pos (abs_pos.mpr (Int.cast_ne_zero.mpr hk)) _)
-    (sq_pos_of_pos (norm_pos_iff.mpr hpk))
   have hs := circleSobolev_of_unit_primitive_transportRegularity P η B hη hB p
     n marks α C₀ hα0 hα1 hC₀ hprim hreg
   have hfinite : circleVariance P p ⟨1, by norm_num⟩ < ⊤ := by
     unfold circleVariance
     simp only [testAtScale, ite_true]
     exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top hs.2
-  let b := 1 / (4 * max 1 |(k : ℝ)|)
-  have hb : 0 < b := by dsimp [b]; positivity
+  let σ := Real.sqrt (circleVariance P p ⟨1, by norm_num⟩).toReal
+  have hσ : 0 < σ := Real.sqrt_pos.mpr (ENNReal.toReal_pos
+    (fun hz => hp ((clt_nondegeneracy_macroscopic_zero P p).mp hz)) hfinite.ne)
+  let τ := (P.val.2 / 2 - α) / 2
+  have hτ : 0 < τ := by dsimp [τ]; linarith
+  have hr : 0 < P.val.2 / 2 - α - τ := by dsimp [τ]; linarith
+  obtain ⟨D, -, herror⟩ := regUniform_variance_macroscopic P p η B n marks α C₀ τ
+    hη hB hC₀ hα0 hα1 hτ hprim hreg ρ hρ
   have hd : 0 < (2 - P.val.2) / (4 + P.val.2) :=
     div_pos (by linarith [P.property.2.2]) (by linarith [P.property.2.1])
-  have hevent := (tendsto_rpow_neg_atTop hd).eventually (gt_mem_nhds hb)
-  obtain ⟨T, hT⟩ := eventually_atTop.mp hevent
-  refine ⟨Real.sqrt (A * w / 4), Real.sqrt (circleVariance P p ⟨1, by norm_num⟩).toReal + 1,
-    max T 1, Real.sqrt_pos.mpr (by positivity), by positivity,
+  have hdecay : Tendsto (fun K : ℝ => D *
+      (K ^ (-((2 - P.val.2) / (4 + P.val.2)))) ^ (P.val.2 / 2 - α - τ))
+      atTop (𝓝 0) := by
+    have hh := (tendsto_rpow_neg_atTop hd).rpow_const (p := P.val.2 / 2 - α - τ)
+      (Or.inr hr.le)
+    simpa only [Real.zero_rpow hr.ne', mul_zero] using hh.const_mul D
+  obtain ⟨T, hT⟩ := eventually_atTop.mp (hdecay.eventually (gt_mem_nhds (half_pos hσ)))
+  refine ⟨σ / 2, σ + σ / 2, max T 1, half_pos hσ, by linarith,
     lt_of_lt_of_le one_pos (le_max_right _ _), fun N hN => ?_⟩
   let hh := cltDelta_pos P N ⟨1, by norm_num⟩
-  let V := cltVariance P ⟨1, by norm_num⟩
-    ⟨(fun x => (cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩ x : ℂ)),
-      Internal.nondegeneracy_regCircle_memLp hρ unitLength hh ⟨p.val, p.property⟩⟩
-  have hVle : V ≤ circleVariance P p ⟨1, by norm_num⟩ :=
-    Internal.nondegeneracy_unit_variance_le hρ hh P p
-  have hVfin := hVle.trans_lt hfinite
-  have hδb : cltDelta P N ⟨1, by norm_num⟩ < b := by
+  have hδ1 : cltDelta P N ⟨1, by norm_num⟩ ≤ 1 := by
+    apply Real.rpow_le_one_of_one_le_of_nonpos
+      (show 1 ≤ (N : ℝ) * 1 by simpa only [mul_one] using (le_max_right T 1).trans hN)
+      (neg_nonpos.mpr hd.le)
+  obtain ⟨g, e, _, hg, he, hefin, hebound⟩ := herror _ hh hδ1
+  have hgeq : g.val = cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩ := by
+    funext y
+    induction y using QuotientAddGroup.induction_on with
+    | H x => rw [hg, Internal.nondegeneracy_unit_lift_coe]
+  let f : {f : UnitAddCircle → ℂ // MemLp f 2 volume} :=
+    ⟨(fun x => (p.val x : ℂ)), p.property⟩
+  let g' : {f : UnitAddCircle → ℂ // MemLp f 2 volume} :=
+    ⟨(fun x => (g.val x : ℂ)), g.property⟩
+  have heq : subL2 f g' = ⟨(fun x => (e.val x : ℂ)), e.property⟩ := by
+    apply Subtype.ext
+    funext x
+    simp only [subL2, f, g', he, Complex.ofReal_sub]
+  have hunit (q : Profile) : cltVariance P ⟨1, by norm_num⟩
+      ⟨(fun x => (q.val x : ℂ)), q.property⟩ = circleVariance P q ⟨1, by norm_num⟩ := by
+    simp only [cltVariance, circleVariance, testAtScale, ite_true]
+  have hcomp := Internal.nondegeneracy_unit_variance_comparison P f g'
+    (by rw [hunit]; exact hfinite) (by rw [heq, hunit]; exact hefin)
+  have hsmall : Real.sqrt (circleVariance P e ⟨1, by norm_num⟩).toReal ≤ σ / 2 := by
+    refine hebound.trans (le_of_lt ?_)
     simpa only [cltDelta, mul_one] using hT (N : ℝ) ((le_max_left _ _).trans hN)
-  have hm : (1 / 2 : ℝ) ≤ mollifierFT ρ (cltDelta P N ⟨1, by norm_num⟩ * k) := by
-    have hsmall : |cltDelta P N ⟨1, by norm_num⟩ * (k : ℝ)| ≤ 1 / 4 := by
-      rw [abs_mul, abs_of_pos hh]
-      have h1 : cltDelta P N ⟨1, by norm_num⟩ * (4 * max 1 |(k : ℝ)|) < 1 :=
-        (lt_div_iff₀ (by positivity)).mp hδb
-      nlinarith [mul_le_mul_of_nonneg_left (le_max_right 1 |(k : ℝ)|) hh.le]
-    have hbound := mollifierFT_one_sub_le hρ.isCircleMollifier
-      (cltDelta P N ⟨1, by norm_num⟩ * k)
-    have hsq : (cltDelta P N ⟨1, by norm_num⟩ * (k : ℝ)) ^ 2 ≤ (1 / 4 : ℝ) ^ 2 := by
-      nlinarith [sq_abs (cltDelta P N ⟨1, by norm_num⟩ * (k : ℝ)),
-        abs_nonneg (cltDelta P N ⟨1, by norm_num⟩ * (k : ℝ))]
-    nlinarith [min_le_left ((cltDelta P N ⟨1, by norm_num⟩ * (k : ℝ)) ^ 2) 1]
-  have hmode : ENNReal.ofReal (w / 4) ≤
-      circleSobolevSq ((1 - P.val.2) / 2)
-        ⟨(fun x => (cltRegCircle hρ unitLength hh ⟨p.val, p.property⟩ x : ℂ)),
-          Internal.nondegeneracy_regCircle_memLp hρ unitLength hh ⟨p.val, p.property⟩⟩ := by
-    refine le_trans ?_ (ENNReal.le_tsum k)
-    simp only [ite_eq_right hk, Internal.nondegeneracy_unit_lift_coeff,
-      norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
-    apply ENNReal.ofReal_le_ofReal
-    have he : 2 * ((1 - P.val.2) / 2) = 1 - P.val.2 := by ring
-    rw [he]
-    change w / 4 ≤ |(k : ℝ)| ^ (1 - P.val.2) *
-      (‖fourierCoeff (fun x => (p.val x : ℂ)) k‖ ^ 2 *
-        mollifierFT ρ (cltDelta P N ⟨1, by norm_num⟩ * k) ^ 2)
-    nlinarith [mul_le_mul_of_nonneg_left
-      (show (1 / 4 : ℝ) ≤ mollifierFT ρ (cltDelta P N ⟨1, by norm_num⟩ * k) ^ 2 by nlinarith)
-      hw.le]
-  have hlow : ENNReal.ofReal (A * w / 4) ≤ V := by
-    have he : ENNReal.ofReal (A * w / 4) = ENNReal.ofReal A * ENNReal.ofReal (w / 4) := by
-      rw [← ENNReal.ofReal_mul hA.le]
-      congr 1
-      ring
-    rw [he]
-    dsimp only [V, cltVariance]
-    simp only [Real.one_rpow, mul_one]
-    exact mul_le_mul le_rfl hmode zero_le zero_le
-  refine ⟨hVfin, ?_, ?_⟩
-  · apply Real.sqrt_le_sqrt
-    have ht := ENNReal.toReal_mono hVfin.ne hlow
-    simpa only [ENNReal.toReal_ofReal (show 0 ≤ A * w / 4 by positivity)] using ht
-  · exact (Real.sqrt_le_sqrt (ENNReal.toReal_mono hfinite.ne hVle)).trans (by linarith)
+  have hdiff : |σ - Real.sqrt (cltVariance P ⟨1, by norm_num⟩ g').toReal| ≤ σ / 2 := by
+    have hc := hcomp.2
+    rw [heq, hunit p, hunit e] at hc
+    exact hc.trans hsmall
+  have hb := abs_le.mp hdiff
+  have hbounds : cltVariance P ⟨1, by norm_num⟩ g' < ⊤ ∧
+      σ / 2 ≤ Real.sqrt (cltVariance P ⟨1, by norm_num⟩ g').toReal ∧
+      Real.sqrt (cltVariance P ⟨1, by norm_num⟩ g').toReal ≤ σ + σ / 2 :=
+    ⟨hcomp.1, by linarith [hb.2], by linarith [hb.1]⟩
+  simpa only [g', hgeq] using hbounds
 
 end Riesz1

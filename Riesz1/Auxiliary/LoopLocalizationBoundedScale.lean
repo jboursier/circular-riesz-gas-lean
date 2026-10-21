@@ -8,12 +8,14 @@ module
 public import Riesz1.Auxiliary.LoopLocalizationTail
 public import Riesz1.Auxiliary.LoopLocalizationGlobalMoments
 public import Riesz1.Auxiliary.LoopLocalizationFull
+public import Riesz1.ToMathlib.VarianceTwoErrors
 
 /-!
-# The bounded scale range of spatial loop localization
+# Polynomial loop errors and bounded scale variance
 
-The localization part of Lemma 5.8: all scales below any fixed
-threshold are covered uniformly in the particle number, in both window regimes.
+The crude loop estimate and the first derivative envelope control the variance
+directly below a fixed scale threshold. Polynomial localization moments also
+control the error on the exceptional event at large scales.
 -/
 
 public section
@@ -125,45 +127,63 @@ theorem loopLocalization_polynomial_error
   rw [he]
   exact ⟨hn.trans_lt ENNReal.ofReal_lt_top, hn⟩
 
-/-- Every bounded scale range satisfies the square-root bound for
-the complete localization error, uniformly in `N`, with the threshold fixed
-before the particle number and test. -/
-theorem loopLocalization_bounded_scale
+/-- Below a fixed scale threshold, the crude loop bound and the first
+derivative envelope bound the variance uniformly in the particle number. -/
+theorem loopLocalization_bounded_variance
     (hBE : External.BakryEmery) (hPL : External.PrekopaLeindler)
-    (β s : ℝ) (hβ : 0 < β) (hs : 0 < s) (hs1 : s < 1)
-    {α γ : ℝ} (hα : s - 1 ≤ α) (hα2 : α < s / 2) (hγ : 2 ≤ γ)
-    {χ : ℝ → ℝ} (hχ : ContDiff ℝ ∞ χ) (hχc : HasCompactSupport χ)
-    (hχs : tsupport χ ⊆ Ioo (-(1 / 4)) (1 / 4))
-    (hχ1 : ∀ x : ℝ, |x| ≤ 1 / 8 → χ x = 1) (hχ01 : ∀ x, 0 ≤ χ x ∧ χ x ≤ 1)
-    (K0 : ℝ) (hK0 : 1 ≤ K0) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (N : ℕ+) (ℓ : ℝ) (ψ : ℝ → ℝ) (C0 : ℝ),
-      2 ≤ (N : ℕ) → 0 < ℓ → 1 ≤ (N : ℝ) * ℓ → (N : ℝ) * ℓ ≤ K0 →
+    {β s α : ℝ} (hβ : 0 < β) (hs : 0 < s) (hs1 : s < 1)
+    (hα : s - 1 ≤ α) (K0 : ℝ) (hK0 : 1 ≤ K0) :
+    ∃ C : ℝ, 0 < C ∧ ∀ (N : ℕ+) (ℓ C0 : ℝ) (ψ : ℝ → ℝ),
+      0 < ℓ → 1 ≤ (N : ℝ) * ℓ → (N : ℝ) * ℓ ≤ K0 →
       0 ≤ C0 → ContDiff ℝ ∞ ψ → Function.Periodic ψ ℓ⁻¹ →
       (∀ t, |deriv ψ t| ≤ C0 * gradWeightOne s (1 - s + α) ((N : ℝ) * ℓ) ℓ⁻¹ t) →
-      (∀ t, |deriv (deriv ψ) t| ≤
-        C0 * gradWeightTwo s (1 - s + α) ((N : ℝ) * ℓ) ℓ⁻¹ t) →
-      let b0 := loopLocalTransport χ N ℓ γ ψ
-      let F := fun X : LoopPrecedingConfiguration N =>
-        loopArcL s N (loopScaleField ((N : ℝ) * ℓ) ψ) X.val -
-        loopLocalLoop s N ℓ γ b0 X - loopLocalBackground s N ℓ γ b0
-      let μ := loopPrecedingMeasure ⟨(β, s), hβ, hs, hs1⟩ N
-      MemLp F 2 μ ∧ eLpNorm F 2 μ ≤
-        ENNReal.ofReal (C * C0 * ((N : ℝ) * ℓ) ^ (1 / 2 : ℝ)) := by
-  obtain ⟨A, hA, herr⟩ := loopLocalization_polynomial_error hBE hPL β s hβ hs hs1
-    hα hα2 hγ (p := 2) (by norm_num) hχ hχc hχs hχ1 hχ01
-  let d := (1 - s + α) + 2 * γ
-  refine ⟨A * K0 ^ d, by positivity, ?_⟩
-  intro N ℓ ψ C0 hN hℓ hK hKK0 hC0 hψ hp hd hdd
-  obtain ⟨hm, hn⟩ := herr N ℓ ψ C0 hN hℓ hK hC0 hψ hp hd hdd
-  norm_num only [ENNReal.ofReal_ofNat] at hm hn
-  refine ⟨hm, hn.trans (ENNReal.ofReal_le_ofReal ?_)⟩
-  have hpow : ((N : ℝ) * ℓ) ^ d ≤ K0 ^ d :=
-    Real.rpow_le_rpow (by linarith) hKK0 (by dsimp [d]; linarith)
-  have hsqrt : 1 ≤ ((N : ℝ) * ℓ) ^ (1 / 2 : ℝ) := Real.one_le_rpow hK (by norm_num)
+      let P : Parameters := ⟨(β, s), hβ, hs, hs1⟩
+      letI := (modelWellDefined P N).2.2
+      let F := fun X : Configuration N => loopArcL s N (loopScaleField ((N : ℝ) * ℓ) ψ) X
+      ∃ hF : MemLp F 2 (gibbsMeasure P N),
+        variance (gibbsMeasure P N) F (hF.integrable one_le_two) ≤
+          ENNReal.ofReal (C * C0 ^ 2) := by
+  obtain ⟨A, hA, hcrude⟩ := auxiliary_Loop_crude hBE hPL hβ hs hs1
+    (p := 2) (by norm_num)
+  let B := 6 + (2 : ℝ) ^ (2 - s) * (2 * (1 + 1 / (1 - s)))
+  let D := A * B * K0 ^ ((1 - s + α) + 1)
+  have hB : 0 < B := by dsimp [B]; positivity
+  have hD : 0 < D := by dsimp [D]; positivity
+  refine ⟨D ^ 2, sq_pos_of_pos hD, ?_⟩
+  intro N ℓ C0 ψ hℓ hK hKK0 hC0 hψ hp hd
+  let K := (N : ℝ) * ℓ
+  let P : Parameters := ⟨(β, s), hβ, hs, hs1⟩
+  let F := fun X : Configuration N => loopArcL s N (loopScaleField K ψ) X
+  have : IsProbabilityMeasure (gibbsMeasure P N) := (modelWellDefined P N).2.2
+  have hKpos : 0 < K := by dsimp [K]; linarith
+  have hscale : (N : ℝ) / K = ℓ⁻¹ := by dsimp [K]; field_simp
+  have hcells := Internal.loopLocalization_cell_sum_envelope hs1
+    (by linarith : 0 ≤ 1 - s + α) hK hC0 N (b := loopScaleField K ψ)
+    (fun z => by rw [loopLocalization_deriv_scaleField hKpos.ne' hψ, hscale]; exact hd _)
+  have hnorm : eLpNorm F 2 (gibbsMeasure P N) ≤ ENNReal.ofReal (D * C0) := by
+    have hh := hcrude N (loopScaleField K ψ)
+      ((loopScaleField_contDiff hψ).of_le (by simp)) (loopLocalization_scaleField_periodic hp)
+    norm_num only [ENNReal.ofReal_ofNat] at hh
+    apply hh.trans
+    apply ENNReal.ofReal_le_ofReal
+    calc
+      _ ≤ A * (B * C0 * K ^ ((1 - s + α) + 1)) :=
+        mul_le_mul_of_nonneg_left hcells hA.le
+      _ ≤ A * (B * C0 * K0 ^ ((1 - s + α) + 1)) := by
+        gcongr
+        linarith
+      _ = D * C0 := by dsimp [D]; ring
+  have hF : MemLp F 2 (gibbsMeasure P N) := hnorm.trans_lt ENNReal.ofReal_lt_top
+  refine ⟨hF, ?_⟩
   calc
-    _ ≤ A * C0 * K0 ^ d := mul_le_mul_of_nonneg_left hpow (by positivity)
-    _ = (A * K0 ^ d * C0) * 1 := by ring
-    _ ≤ _ := mul_le_mul_of_nonneg_left hsqrt (by positivity)
+    _ ≤ ∫⁻ X, ENNReal.ofReal ((F X - 0) ^ 2) ∂gibbsMeasure P N :=
+      variance_le_lintegral_sq_sub _ hF 0
+    _ = eLpNorm F 2 (gibbsMeasure P N) ^ 2 := by
+      simp only [sub_zero]
+      exact lintegral_sq_eq_eLpNorm_two_sq hF.aestronglyMeasurable
+    _ ≤ ENNReal.ofReal (D * C0) ^ 2 := pow_le_pow_left' hnorm 2
+    _ = ENNReal.ofReal (D ^ 2 * C0 ^ 2) := by
+      rw [← ENNReal.ofReal_pow (by positivity : 0 ≤ D * C0), mul_pow]
 
 end Riesz1
 

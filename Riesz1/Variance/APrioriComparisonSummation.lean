@@ -203,20 +203,6 @@ theorem comparison_sums_le (s lam γ : ℝ) (hs : 0 < s) (hs1 : s < 1)
   · simp only [augmentedComparisonWeight, add_mul, Finset.sum_add_distrib]
     linarith
 
-/-- **Both summation bounds** (part of Lemma 5.2, the comparison part).
-One constant works for the original and augmented weights, with an
-exponent chosen independently of `ε`. -/
-theorem a_priori_comparison_summation (s lam γ : ℝ) (hs : 0 < s) (hs1 : s < 1)
-    (hlam : 0 ≤ lam) (hγ : 1 < γ) :
-    ∃ κ : ℝ, 0 < κ ∧ ∀ ε : ℝ, 0 < ε → ε ≤ 1 → ∃ C : ℝ, 0 < C ∧
-      ∀ (N : ℕ+) (K : ℝ), 1 ≤ K →
-      ∀ J : Finset (Fin (N : ℕ)), J ⊆ (window N K γ).erase ⟨0, N.pos⟩ →
-        (∑ i ∈ J, comparisonWeight N K s lam ε i * (labelDistToOne N i : ℝ) ^ (s / 2) ≤
-          C * K ^ (κ * ε) * (K ^ lam + K ^ (s / 2))) ∧
-        (∑ i ∈ J, augmentedComparisonWeight N K s lam ε i *
-            (labelDistToOne N i : ℝ) ^ (s / 2) ≤
-          C * K ^ (κ * ε) * (K ^ lam + K ^ (s / 2))) :=
-  ⟨2, by norm_num, fun ε hε hε1 => comparison_sums_le s lam γ hs hs1 hlam hγ ε hε hε1⟩
 
 end Riesz1
 
