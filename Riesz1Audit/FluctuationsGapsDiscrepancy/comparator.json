@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Riesz1Audit.FluctuationsGapsDiscrepancy.Challenge",
+  "solution_module": "Riesz1Audit.FluctuationsGapsDiscrepancy.Solution",
+  "theorem_names": [
+    "Riesz1Audit.FluctuationsGapsDiscrepancy.Riesz1.fluctuations_gaps_discrepancy"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

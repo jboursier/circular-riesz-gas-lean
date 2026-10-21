@@ -1,0 +1,29 @@
+name = "Riesz1"
+version = "1.0.0"
+defaultTargets = ["Riesz1"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+linter.unusedVariables = true
+linter.unusedSectionVars = true
+linter.unusedSimpArgs = true
+linter.unnecessarySimpa = true
+linter.deprecated = true
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.35.0"
+
+[[lean_lib]]
+name = "Riesz1"
+# Build the root and every module under the namespace.
+globs = ["Riesz1", "Riesz1.+"]
+
+[[lean_lib]]
+name = "Riesz1Audit"
+# The comparator pairs. Each challenge has one intentional `sorry`, so this library is not a
+# default target: build it with `lake build Riesz1Audit`.
+globs = ["Riesz1Audit.+"]

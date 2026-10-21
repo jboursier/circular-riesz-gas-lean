@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Riesz1Audit.CentralLimitTheorem.Challenge",
+  "solution_module": "Riesz1Audit.CentralLimitTheorem.Solution",
+  "theorem_names": [
+    "Riesz1Audit.CentralLimitTheorem.Riesz1.central_limit_theorem"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

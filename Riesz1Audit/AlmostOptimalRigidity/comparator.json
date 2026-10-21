@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Riesz1Audit.AlmostOptimalRigidity.Challenge",
+  "solution_module": "Riesz1Audit.AlmostOptimalRigidity.Solution",
+  "theorem_names": [
+    "Riesz1Audit.AlmostOptimalRigidity.Riesz1.almost_optimal_rigidity"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

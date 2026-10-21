@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "Optimal local laws and central limit theorem for the circular Riesz gas: a Lean 4 formalization"
+type: software
+repository-code: "https://github.com/jboursier/circular-riesz-gas-lean"
+abstract: >-
+  A machine-checked Lean 4 and Mathlib formalization of the main results of the paper
+  "Optimal local laws and central limit theorem for the circular Riesz gas": near-optimal
+  rigidity of gaps and interval counts, the variance expansion of singular linear statistics,
+  and central limit theorems for singular linear statistics, interval counts, gaps and
+  power-law observables, for every inverse temperature and every Riesz exponent in (0, 1).
+  The library contains no sorry and no custom axiom, and each of the five main results has a
+  Mathlib-only comparator challenge.
+authors:
+  - family-names: Boursier
+    given-names: Jeanne
+keywords:
+  - Lean
+  - mathlib
+  - formal verification
+  - Riesz gas
+  - rigidity
+  - central limit theorem
+license: Apache-2.0
+preferred-citation:
+  type: article
+  title: "Optimal local laws and central limit theorem for the circular Riesz gas"
+  authors:
+    - family-names: Boursier
+      given-names: Jeanne
+  identifiers:
+    - type: other
+      value: "arXiv:2112.05881"
+  url: "https://arxiv.org/abs/2112.05881"
+  year: 2021

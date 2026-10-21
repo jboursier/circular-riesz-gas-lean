@@ -1,0 +1,41 @@
+/-
+Copyright (c) 2026 Jeanne Boursier. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeanne Boursier
+-/
+module
+
+public import Mathlib.Analysis.Fourier.AddCircle
+public import Mathlib.Analysis.Fourier.LpSpace
+public import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
+public import Mathlib.Tactic
+public import Riesz1.Frozen.Parameters
+public import Riesz1.Frozen.RieszExponent
+public import Riesz1.Frozen.PowerExponent
+
+/-!
+# Power Riesz exponent: `Riesz1.powerRieszExponent`
+
+A power-observable exponent is a Riesz exponent (see Corollary 2).
+-/
+
+@[expose] public section
+
+noncomputable section
+
+open MeasureTheory Filter
+open scoped ENNReal NNReal Topology BigOperators BoundedContinuousFunction
+
+namespace Riesz1
+
+/-- A power-observable exponent is a Riesz exponent (see Corollary 2). -/
+def powerRieszExponent (P : Parameters) (alpha : PowerExponent P) : RieszExponent :=
+  ⟨alpha.val, alpha.property.1, by linarith [alpha.property.2, P.property.2.2]⟩
+
+
+end Riesz1
+
+end
+end

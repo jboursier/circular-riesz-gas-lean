@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Riesz1Audit.PowerLawObservable.Challenge",
+  "solution_module": "Riesz1Audit.PowerLawObservable.Solution",
+  "theorem_names": [
+    "Riesz1Audit.PowerLawObservable.Riesz1.power_law_observable"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

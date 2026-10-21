@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Riesz1Audit.QuantitativeVariance.Challenge",
+  "solution_module": "Riesz1Audit.QuantitativeVariance.Solution",
+  "theorem_names": [
+    "Riesz1Audit.QuantitativeVariance.Riesz1.quantitative_variance"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

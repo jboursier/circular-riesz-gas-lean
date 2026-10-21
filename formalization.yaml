@@ -1,0 +1,193 @@
+version: "v0.4"
+
+project:
+  name: "Optimal local laws and central limit theorem for the circular Riesz gas"
+  description: >-
+    A Lean 4 formalization of the paper "Optimal local laws and central limit theorem for the
+    circular Riesz gas" by Jeanne Boursier: near-optimal rigidity of gaps and interval counts
+    (Theorem 1), the variance expansion of singular linear statistics (Theorem 2), the central
+    limit theorem for singular linear statistics with a rate in the bounded-Lipschitz distance
+    (Theorem 3), and the central limit theorems for interval counts, gaps (Corollary 1) and
+    power-law observables (Corollary 2), for every inverse temperature beta > 0 and every Riesz
+    exponent 0 < s < 1. The development builds on Mathlib alone. The five main results are
+    independently checked by the comparator pairs under Riesz1Audit/.
+  authors:
+    - "Jeanne Boursier"
+  responsible_maintainers:
+    - "Jeanne Boursier"
+  license: "Apache-2.0"
+
+classification:
+  arxiv: ["math.PR", "math-ph"]
+  msc2020: ["82B05", "60F05", "82B21", "60G55", "60B20"]
+
+sources:
+  - title: "Optimal local laws and central limit theorem for the circular Riesz gas"
+    authors:
+      - "Jeanne Boursier"
+    type: "paper"
+    relationship: "formalizes"
+    location: "https://arxiv.org/abs/2112.05881"
+    note: >-
+      The formalization follows the revised version of the paper (2026). Its numbering of
+      results is the one used in the repository. Theorems 1, 2 and 3 and Corollaries 1 and 2 of
+      the introduction are formalized as stated there.
+    license: "author's copyright"
+    author_endorsement: "author"
+
+status:
+  scope: >-
+    Theorem 1 (Riesz1.almost_optimal_rigidity), Theorem 2 (Riesz1.quantitative_variance),
+    Theorem 3 (Riesz1.central_limit_theorem), Corollary 1 (Riesz1.fluctuations_gaps_discrepancy)
+    and Corollary 2 (Riesz1.power_law_observable), each for every beta > 0 and 0 < s < 1,
+    together with the supporting results of the paper and the three classical results it cites
+    (the Prekopa-Leindler inequality, the Bakry-Emery criterion and Pinsker's inequality). Not
+    formalized: the discussion following Theorem 3 (joint convergence of smooth pairings and the
+    fractional Gaussian field limit of the potential) and the remarks of the introduction.
+  sorry_count: 0
+  sorry_count_scope: "Riesz1 library only"
+  comparator_challenge_sorry_count: 5
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "Riesz1.almost_optimal_rigidity"
+      file: "Riesz1/Frozen/AlmostOptimalRigidity.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Riesz1Audit/AlmostOptimalRigidity/comparator.json"
+      literature_dependencies: []
+    - declaration: "Riesz1.quantitative_variance"
+      file: "Riesz1/Frozen/QuantitativeVariance.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Riesz1Audit/QuantitativeVariance/comparator.json"
+      literature_dependencies: []
+    - declaration: "Riesz1.central_limit_theorem"
+      file: "Riesz1/Frozen/CentralLimitTheorem.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Riesz1Audit/CentralLimitTheorem/comparator.json"
+      literature_dependencies: []
+    - declaration: "Riesz1.fluctuations_gaps_discrepancy"
+      file: "Riesz1/Frozen/FluctuationsGapsDiscrepancy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Riesz1Audit/FluctuationsGapsDiscrepancy/comparator.json"
+      literature_dependencies: []
+    - declaration: "Riesz1.power_law_observable"
+      file: "Riesz1/Frozen/PowerLawObservable.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Riesz1Audit/PowerLawObservable/comparator.json"
+      literature_dependencies: []
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "gpt-6.1-sol"
+      framework: "Codex CLI (OpenAI)"
+      tool_setup: >-
+        Statement writing, proof development and refute-first audits of the statements against
+        the paper, with Lean builds under leanprover/lean4:v4.35.0 and Mathlib v4.35.0.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local macOS machine"
+      prompting_notes: >-
+        Human-directed work. Each task fixed the statements to be proved and forbade changing
+        them.
+    - method: "agent"
+      models:
+        - "claude-opus-5-5"
+        - "claude-haiku-5-5"
+      framework: "Claude Code (Anthropic)"
+      tool_setup: >-
+        Claude Opus 5.5 coordinated the agents, reviewed their work and prepared the release.
+        Claude Haiku 5.5 made blind back-translations of the Lean statements into mathematics,
+        without access to the paper, and mechanical edits.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local macOS machine"
+      prompting_notes: >-
+        Human-directed work on author-specified statements.
+  spend_usd: "not tracked"
+  notes: >-
+    The Lean code was written with AI assistance under the direction of the author, who fixed
+    the statements to be formalized. Every proof is checked by the Lean kernel and Mathlib, and
+    the library contains no sorry and no custom axiom. The five Mathlib-only comparator
+    challenge files (Riesz1Audit/*/Challenge.lean) each contain exactly one intentional
+    statement-level sorry, which the corresponding Solution.lean proves and leanprover/comparator
+    checks. The revision of the paper that this repository formalizes was prepared with
+    GPT-6 Astra and Claude Opus 5.5. Scott Armstrong provided the skill files used for the
+    formalization.
+
+fidelity:
+  divergences: >-
+    Every result is stated for every beta > 0 and 0 < s < 1. The circle of length L is Mathlib's
+    AddCircle L with arclength measure. A configuration is its ordered real lift
+    x_0 < ... < x_{N-1} < x_0 + 1 with 0 <= x_0 < 1, with Lebesgue measure on the set of lifts,
+    and the paper's label 1 is label 0. The kernel is 2 Re of Mathlib's even Hurwitz zeta
+    function, and the paper's limit formula for it is a proved theorem. Fractional Laplacians,
+    Sobolev seminorms and the transport map are defined by Fourier multipliers with the zero
+    mode set to zero, and derivatives in Assumption 1.1 are distributional. A test function is
+    one fixed real L2 profile, compactly supported when it vanishes almost everywhere outside
+    (-rho, rho) for some 0 < rho < 1/2. Scale sequences are maps from the positive integers to
+    (0, 1], and limits are taken along N = n + 1. Partition functions and variances take values
+    in [0, infinity], and their finiteness is a conclusion. Convergence in law is convergence of
+    the integrals of bounded continuous functions, and the bounded-Lipschitz distance uses C1
+    test functions bounded by 1 with derivative bounded by 1. Constants are quantified in the
+    paper's order. Theorem 2(3) assumes that the test function satisfies Assumption 1.1 for some
+    scale sequence. Real-valued definitions are total, so the statements conclude the
+    positivity, finiteness, integrability and measurability facts they need.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "GPT-6.1 Sol, independent refute-first audits of every statement and definition"
+    - "Claude Haiku 5.5, blind back-translation of every statement and definition"
+  notes: >-
+    Every proof is checked by the Lean kernel and Mathlib, and the five main statements are
+    additionally replayed by independent kernels through leanprover/comparator. The statements
+    and the definitions they use were written before the proofs and compared with the paper by
+    refute-first audits of agents that did not write them, including a blind back-translation
+    of the Lean text into mathematics. Riesz1/Sanity/ checks the definitions against known
+    values. This is an agent review, not an external peer review.
+
+alignment:
+  namespace: "Riesz1"
+  statements:
+    - source: "Theorem 1 (near-optimal rigidity)"
+      lean: "Riesz1.almost_optimal_rigidity"
+      module: "Riesz1.Frozen.AlmostOptimalRigidity"
+      status: "proved"
+      note: "Comparator surface: Riesz1Audit/AlmostOptimalRigidity/."
+    - source: "Theorem 2 (variance of singular linear statistics)"
+      lean: "Riesz1.quantitative_variance"
+      module: "Riesz1.Frozen.QuantitativeVariance"
+      status: "proved"
+      note: "Comparator surface: Riesz1Audit/QuantitativeVariance/."
+    - source: "Theorem 3 (CLT for singular linear statistics)"
+      lean: "Riesz1.central_limit_theorem"
+      module: "Riesz1.Frozen.CentralLimitTheorem"
+      status: "proved"
+      note: "Comparator surface: Riesz1Audit/CentralLimitTheorem/."
+    - source: "Corollary 1 (CLT for interval counts and gaps)"
+      lean: "Riesz1.fluctuations_gaps_discrepancy"
+      module: "Riesz1.Frozen.FluctuationsGapsDiscrepancy"
+      status: "proved"
+      note: "Comparator surface: Riesz1Audit/FluctuationsGapsDiscrepancy/."
+    - source: "Corollary 2 (CLT for power-law observables)"
+      lean: "Riesz1.power_law_observable"
+      module: "Riesz1.Frozen.PowerLawObservable"
+      status: "proved"
+      note: "Comparator surface: Riesz1Audit/PowerLawObservable/."
+
+acknowledgements: >-
+  Built on Lean 4, Mathlib, Lake, leanprover/comparator, NanoDa and con-ron. Scott Armstrong
+  provided the skill files used for the formalization. The author was supported by a grant from
+  the Fondation CFM pour la Recherche and by the ERC Advanced Grant LDRAM (ERC-2019-ADG 884584).
