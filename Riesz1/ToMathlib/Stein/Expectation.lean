@@ -41,7 +41,7 @@ theorem stein_expectation_identity {Ω : Type*} [MeasurableSpace Ω] (μ : Measu
       = ∫ ω, (σ ^ 2 * deriv (steinSolution σ f) (G ω) - G ω * steinSolution σ f (G ω)) ∂μ := by
   set c : ℝ := ∫ z, f (σ * z) ∂(gaussianReal 0 1) with hc
   have hpt : ∀ ω, σ ^ 2 * deriv (steinSolution σ f) (G ω) - G ω * steinSolution σ f (G ω)
-      = f (G ω) - c := fun ω => stein_ode (x := G ω) hf hσ hfb hf'
+      = f (G ω) - c := fun ω => stein_ode (x := G ω) hf hσ hf'
   have hfG : Integrable (fun ω => f (G ω)) μ :=
     Integrable.of_bound (hf.continuous.comp_aestronglyMeasurable hGm) 1
       (Filter.Eventually.of_forall fun ω => by simpa [Real.norm_eq_abs] using hfb (G ω))

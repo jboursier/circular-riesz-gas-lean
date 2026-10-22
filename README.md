@@ -173,7 +173,7 @@ exponent `α`, and assume `Nℓ_N → ∞`. Write `G_N = (Nℓ_N)^{-s/2} Fluct_N
 
 ## Size
 
-The library contains 1,532 Lean files with 244,992 physical lines, on top of mathlib. The 15
+The library contains 1,535 Lean files with 246,532 physical lines, on top of mathlib. The 15
 comparator files under `Riesz1Audit/`, with 6,799 lines, are not included in these counts.
 
 ## Building

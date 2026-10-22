@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.MeanValue
 public import Mathlib.Analysis.SpecialFunctions.Exp
-public import Riesz1.ToMathlib.Stein.Solution
+public import Riesz1.ToMathlib.Stein.Formula
 
 /-!
 # Uniqueness of bounded solutions of the Stein equation

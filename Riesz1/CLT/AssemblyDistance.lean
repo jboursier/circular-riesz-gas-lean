@@ -167,6 +167,8 @@ theorem assembly_bl_bound_of_nondegenerate (hPL : External.PrekopaLeindler)
     hE1 (min (τ₀ / 2) (eps / 2)) hτ₂pos (lt_of_le_of_lt (min_le_left _ _) (half_lt_self hτ₀))
   obtain ⟨C₂, K₄, hC₂, hK₄, hE2'⟩ :=
     hE2 (min (τ₀' / 2) (eps / 2)) hτ₃pos (lt_of_le_of_lt (min_le_left _ _) (half_lt_self hτ₀'))
+  let C₂' := 2 * C₂
+  have hC₂' : 0 < C₂' := mul_pos two_pos hC₂
   have hτ₂le : min (τ₀ / 2) (eps / 2) ≤ eps / 2 := min_le_right _ _
   have hτ₃le : min (τ₀' / 2) (eps / 2) ≤ eps / 2 := min_le_right _ _
   set τ₁ : ℝ := eps / 2 with hτ₁def
@@ -180,7 +182,7 @@ theorem assembly_bl_bound_of_nondegenerate (hPL : External.PrekopaLeindler)
   have hκ0 : 0 ≤ κ0 := integral_nonneg fun x => abs_nonneg x
   set M : ℝ := Real.sqrt (2 / Real.pi) / c with hMdef
   have hM : 0 ≤ M := div_nonneg (Real.sqrt_nonneg _) hc.le
-  set Cmain : ℝ := 2 * Cs + C₁ * M + C₂ + κ0 * Cs with hCmaindef
+  set Cmain : ℝ := 2 * Cs + C₁ * M + C₂' + κ0 * Cs with hCmaindef
   have hCmainpos : 0 < Cmain := by
     have h1 := mul_nonneg hC₁.le hM
     have h2 := mul_nonneg hκ0 hCs.le
@@ -241,22 +243,23 @@ theorem assembly_bl_bound_of_nondegenerate (hPL : External.PrekopaLeindler)
             ∂(gibbsMeasure P N)) -
           ∫ z, f (σ * z) ∂(ProbabilityTheory.gaussianReal 0 1)| ≤
         C₁ * M * K ^ (P.val.2 / 2 - 1 + τ₂) * cltDelta P N (ell N) ^ (-2 - α - τ₂) +
-          C₂ * K ^ (max ((P.val.2 - 1) / 2) (α - P.val.2 / 2) + τ₃) := by
+          C₂' * K ^ (max ((P.val.2 - 1) / 2) (α - P.val.2 / 2) + τ₃) := by
       intro f hf
       obtain ⟨u, hu1, hub, hu'b, hid⟩ := assembly_stein_identity hPL P N (ell N) hK1 hρ _ ψ hψ htr σ
         hσpos hσV hG2 hf
       rw [hid, abs_neg]
       have hM' : ∀ x, |deriv u x| ≤ M := fun x =>
         (hu'b x).trans (div_le_div_of_nonneg_left (Real.sqrt_nonneg _) hc hcg)
-      have hE1b := hE1' ell hadm N hK3 ψ hψ htr σ hσV u hu1 ⟨1, hub⟩ M hM'
-      have hE2b := hE2' ell hadm N hK4 ψ hψ htr u hu1 1 hub
-      rw [mul_one] at hE2b
+      have hE1b := hE1' ell hadm N hK3 ψ hψ htr σ hσV u hu1 ⟨2, hub⟩ M hM'
+      have hE2b := hE2' ell hadm N hK4 ψ hψ htr u hu1 2 hub
+      have hC₂eq : C₂ * 2 = C₂' := by dsimp [C₂']; ring
+      rw [hC₂eq] at hE2b
       exact (abs_add_le _ _).trans (add_le_add hE1b hE2b)
     -- The three estimates, each a bound on the bounded-Lipschitz distance.
     set B1 : ℝ := Cs * (cltDelta P N (ell N) ^ (P.val.2 / 2 - α - τ₁) +
       K ^ (max ((P.val.2 - 1) / 2) (α - P.val.2 / 2) + τ₁)) with hB1def
     set B2 : ℝ := C₁ * M * K ^ (P.val.2 / 2 - 1 + τ₂) * cltDelta P N (ell N) ^ (-2 - α - τ₂) +
-      C₂ * K ^ (max ((P.val.2 - 1) / 2) (α - P.val.2 / 2) + τ₃) with hB2def
+      C₂' * K ^ (max ((P.val.2 - 1) / 2) (α - P.val.2 / 2) + τ₃) with hB2def
     set B3 : ℝ := κ0 * (Cs * cltDelta P N (ell N) ^ (P.val.2 / 2 - α - τ₁)) with hB3def
     have hFi : ∀ f : ℝ → ℝ, BLTest f →
         Integrable (fun X => f (normalizedStatistic P p ell N X)) (gibbsMeasure P N) :=
@@ -312,12 +315,12 @@ theorem assembly_bl_bound_of_nondegenerate (hPL : External.PrekopaLeindler)
     have hB2nn : 0 ≤ B2 := by
       rw [hB2def]
       exact add_nonneg (mul_nonneg (mul_nonneg (mul_nonneg hC₁.le hM) (Real.rpow_nonneg hK0.le _))
-        (Real.rpow_nonneg hδpos _)) (mul_nonneg hC₂.le (Real.rpow_nonneg hK0.le _))
+        (Real.rpow_nonneg hδpos _)) (mul_nonneg hC₂'.le (Real.rpow_nonneg hK0.le _))
     have hB3nn : 0 ≤ B3 := by
       rw [hB3def]
       exact mul_nonneg hκ0 (mul_nonneg hCs.le (Real.rpow_nonneg hδpos _))
-    have hexp := assembly_exponent_bound P.val.2 α eps Cs C₁ C₂ M κ0 τ₁ τ₂ τ₃ K
-      P.property.2.1 P.property.2.2 hα heps hK1 hCs.le hC₁.le hC₂.le hM hκ0 rfl hτ₂pos' hτ₂le hτ₃le
+    have hexp := assembly_exponent_bound P.val.2 α eps Cs C₁ C₂' M κ0 τ₁ τ₂ τ₃ K
+      P.property.2.1 P.property.2.2 hα heps hK1 hCs.le hC₁.le hC₂'.le hM hκ0 rfl hτ₂pos' hτ₂le hτ₃le
     have hδK : cltDelta P N (ell N) = K ^ (-((2 - P.val.2) / (4 + P.val.2))) := rfl
     rw [← hδK] at hexp
     have hfin : B1 + B2 + B3 ≤ Cmain * K ^ pexp := hexp
