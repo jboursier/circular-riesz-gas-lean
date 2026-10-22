@@ -28,8 +28,6 @@ namespace Riesz1
 
 /-! ## Circular distance -/
 
-lemma circDist_eq_abs_cutRep (L t : ℝ) : circDist L t = |cutRep L t| := rfl
-
 /-- The circular distance is even. -/
 lemma circDist_neg_eq {L : ℝ} (hL : 0 < L) (t : ℝ) : circDist L (-t) = circDist L t := by
   have key : ∀ u : ℝ, circDist L (-u) ≤ circDist L u := by

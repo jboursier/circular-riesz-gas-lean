@@ -47,7 +47,8 @@ theorem auxiliary_family_macro_envelopes
             ((N : ℝ) ^ P.val.2 + (N : ℝ) ^ (2 * b)))) ∧
       bellEnergy 1 F ≤ C * ((N : ℝ) ^ ε * (1 + (N : ℝ) ^ (2 * b - 1))) := by
   classical
-  obtain ⟨V, hV, hv⟩ := auxiliary_family_derivative_envelopes hBE hPL P n marks b ε hb.le hε
+  obtain ⟨δmark, hδmark, hsepmark⟩ := exists_pos_le_dist_of_injective hinj
+  obtain ⟨V, hV, hv⟩ := auxiliary_family_derivative_envelopes hBE hPL P n marks δmark hδmark b ε hb.le hε
   obtain ⟨E, hE, he⟩ := varAlPiecesUniform_macro n marks hinj
     (s := P.val.2) hb hS hA
   let J := ((n + 1 : ℕ) : ℝ) ^ 2 * E ^ 2 *
@@ -64,6 +65,11 @@ theorem auxiliary_family_macro_envelopes
   have hN : 1 ≤ (N : ℝ) := by exact_mod_cast (show 1 ≤ (N : ℕ) from N.pos)
   have hh0 : 0 < h := lt_of_lt_of_le (inv_pos.mpr (by linarith : 0 < (N : ℝ))) hh
   let a : Scale := ⟨1, by norm_num⟩
+  have hsepc (i k : Fin n) (hik : i ≠ k) :
+      δmark ≤ circDist a.val⁻¹ (marks i - marks k) := by
+    have ht := hsepmark i k hik
+    rw [dist_coe_eq_circDist_sub unitLength.property, show unitLength.val = 1 from rfl] at ht
+    simpa only [a, inv_one] using ht
   have hfd : ContDiff ℝ ∞ (deriv F) := (contDiff_infty_iff_deriv.mp hF).2
   have hpd : Function.Periodic (deriv F) 1 := Riesz1.periodic_deriv hp
   have hmem : MemLp (fun X : Configuration N => fluctIntegral (deriv F) N X.val) 2
@@ -74,7 +80,7 @@ theorem auxiliary_family_macro_envelopes
     have hh' := circDist_le_half (by norm_num : (0 : ℝ) < 1) x
     simp only [a, inv_one] at hx
     linarith
-  obtain ⟨hi, hvar⟩ := hv N a (by simpa [a] using hN) h A hh0
+  obtain ⟨hi, hvar⟩ := hv N a (by simpa [a] using hN) hsepc h A hh0
     (by simpa [a] using hh) hA (deriv F) hfd
     (by simpa [a] using hpd) (by simpa [a] using h1) (by simpa [a] using h2) htail
   simp only [a, mul_one, div_one] at hvar

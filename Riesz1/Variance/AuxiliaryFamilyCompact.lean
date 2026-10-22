@@ -8,6 +8,7 @@ module
 public import Riesz1.Variance.AuxiliaryFamilyCompactBounds
 public import Riesz1.Variance.AuxiliaryFamilyEnergyEnvelope
 public import Riesz1.Variance.AuxiliaryFamilyDerivativeEnvelope
+public import Riesz1.Variance.RegMicroMarksComplete
 public import Riesz1.Variance.AuxiliaryFamilyRates
 public import Riesz1.Variance.AuxiliaryReductionIdentity
 import all Riesz1.Variance.LoopMaster
@@ -63,30 +64,47 @@ theorem auxiliary_family_compact_estimates
           bellEnergy (ell N).val (loopMasterProfile (ell N) ψ hψ).val ≤
             C * (cltK N (ell N) ^ ε *
               (1 + cltK N (ell N) ^ (2 * (1 - P.val.2 + α) - 1))) := by
+  obtain ⟨m, marks, Cmark, δmark, hCmark, hδmark, hsepmark, hreplace, _⟩ :=
+    regMicro_compact_family_marks P p hp d.1 d.2.1 d.2.2.1 α d.2.2.2.1 d.2.2.2.2
+      hη hB hC₀ hα hα2
+  let d' : TestData := ⟨d.1, d.2.1, Cmark, ⟨m, marks⟩⟩
   obtain ⟨δ, hδ, hα'0, hα'2, _, hδε⟩ := reg_micro_endpoint_choice hα hα2 hε
   let b := 1 - P.val.2 + (α + δ)
   have hb : 0 ≤ b := by dsimp [b]; linarith
-  obtain ⟨A, hA, hbound⟩ := auxiliary_family_compact_transport_bounds P p hp α (α + δ) d
-    hα hα2 (by linarith) hα'0 hα'2 hη hB hC₀ ρ hρ
+  obtain ⟨A, hA, hbound⟩ := auxiliary_family_compact_transport_bounds P p hp α (α + δ) d'
+    hα hα2 (by linarith) hα'0 hα'2 hη hB hCmark.le ρ hρ
   obtain ⟨V, hV, hv⟩ := auxiliary_family_derivative_envelopes hBE hPL P
-    (d.2.2.2.1 : ℕ) d.2.2.2.2 b (ε / 2) hb (by linarith)
+    (d'.2.2.2.1 : ℕ) d'.2.2.2.2 δmark hδmark b (ε / 2) hb (by linarith)
   obtain ⟨D, hD, hj⟩ := auxiliary_family_transport_energy_envelopes
-    (d.2.2.2.1 : ℕ) d.2.2.2.2 P.property.2.2 hb (show 0 < ε / 2 by linarith)
+    (d'.2.2.2.1 : ℕ) d'.2.2.2.2 P.property.2.2 hb (show 0 < ε / 2 by linarith)
   let C := (V + D + 1) * A ^ 2
   have hC : 0 < C := by dsimp [C]; positivity
   have hVC : V * A ^ 2 ≤ C := by dsimp [C]; nlinarith [sq_nonneg A]
   have hDC : D * A ^ 2 ≤ C := by dsimp [C]; nlinarith [sq_nonneg A]
   refine ⟨C, hC, fun ell hell hdata N hK r hr v f hf ψ hψ htr => ?_⟩
+  have hreg : ∀ N,
+      PrimitiveRegularity (observationLength (ell N)) d'.1 P.val.2 d'.2.1
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
+      TransportRegularity P (observationLength (ell N))
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩
+          d'.2.2.2.1 d'.2.2.2.2 α d'.2.2.1 :=
+    fun N => ⟨(hdata N).1, hreplace ell hell hdata (ell N) (hdata N).1⟩
   dsimp only
   let a := ell N
+  have hsepc (i k : Fin (m : ℕ)) (hik : i ≠ k) :
+      δmark ≤ circDist a.val⁻¹ (marks i - marks k) := by
+    have ht := hsepmark a i k hik
+    rw [dist_coe_eq_circDist_sub (observationLength a).property,
+      show (observationLength a).val = a.val⁻¹ from rfl] at ht
+    exact ht
   let Ψ := loopMasterProfile a ψ hψ
   have hΨ : ContDiff ℝ ∞ Ψ.val := hψ
   have hpΨ : Function.Periodic Ψ.val a.val⁻¹ := Ψ.property.1
   have hq := (contDiff_infty_iff_deriv.mp hΨ).2
   have hpq := Riesz1.periodic_deriv hpΨ
   have hh : 0 < (cltK N a)⁻¹ := inv_pos.mpr (cltK_pos N a)
-  obtain ⟨h1, h2, ht⟩ := hbound ell hell hdata N hK r hr v f hf ψ hψ htr
-  obtain ⟨hi, hvar⟩ := hv N a hK (cltK N a)⁻¹ A hh le_rfl hA.le
+  obtain ⟨h1, h2, ht⟩ := hbound ell hell hreg N hK r hr v f hf ψ hψ htr
+  obtain ⟨hi, hvar⟩ := hv N a hK hsepc (cltK N a)⁻¹ A hh le_rfl hA.le
     (deriv Ψ.val) hq hpq h1 h2 ht
   have henergy := hj a.val (cltK N a) (cltK N a)⁻¹ A a.property.1 hK hh le_rfl hA.le
     Ψ.val hΨ hpΨ h1 (fun x hx => (ht x hx).1)

@@ -7,6 +7,7 @@ module
 
 public import Riesz1.Frozen.TransportCoeffs
 public import Riesz1.Kernel.ExplicitFormulasIndicatorEnergy
+public import Riesz1.Kernel.ExplicitFormulasIndicatorLimit
 
 /-!
 # Indicator transport and energy
@@ -29,22 +30,6 @@ open MeasureTheory Set Filter Topology
 open scoped Real Interval
 
 namespace Riesz1
-
-/-- The coefficients of the transport of the centred indicator are the explicit ones. -/
-lemma transportCoeffs_centered (s : RieszExponent) (β a : ℝ) (hβ : 0 < β) (ha0 : 0 < a)
-    (ha1 : a < 1 / 2) (k : ℤ) :
-    transportCoeffs ⟨(β, s.val), hβ, s.2.1, s.2.2⟩ ⟨1, one_pos⟩
-        ⟨centeredIndicatorArc a, memLp_centeredIndicatorArc a⟩ k =
-      transportSeriesCoeff s.val β a k := by
-  by_cases hk : k = 0
-  · subst hk
-    rw [transportSeriesCoeff_zero s.val s.2.1 β a]
-    simp [transportCoeffs]
-  · rw [transportSeriesCoeff_eq s β a hβ k hk]
-    dsimp only [transportCoeffs, coeff]
-    rw [fourierCoeff_centeredIndicatorArc ha0 ha1 k]
-    simp only [hk, ↓reduceIte, div_one, Complex.ofReal_one]
-    rfl
 
 /-- The uncentered and centred indicators have the same nonzero Fourier coefficients. -/
 lemma fourierCoeff_indicatorArc_eq_centered {a : ℝ} {k : ℤ} (hk : k ≠ 0) :

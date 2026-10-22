@@ -9,13 +9,15 @@ public import Riesz1.Variance.VarAlPiecesEnvelopeMacro
 public import Riesz1.Variance.RegUniformTails
 public import Riesz1.Variance.RegUniformFirstTransport
 public import Riesz1.Variance.RegUniformSecondTransport
+public import Riesz1.Variance.RegMicroMarksComplete
 
 /-!
 # Decomposition and envelopes of the regularized transport, shrinking scales
 
 Proposition 5.9, compact case: the circle of length `L_N = ℓ_N⁻¹` varies with `N`.
-This file contains the length-generic decomposition, the separation of the marks uniform in `N`,
-and the uniform bounds of the remainder by the tails of the transport.
+The selected compact marks are separated on every circle of length at least one.
+The cutoffs and all envelope constants precede the scale sequence.
+The tails of the transport bound the derivatives of the smooth remainder.
 -/
 
 public section
@@ -175,98 +177,22 @@ lemma one_le_weight_of_lt {L x K e : ℝ} (hd : circDist L x < 1) (hK : 1 ≤ K)
   have hle : max (circDist L x) K⁻¹ ≤ 1 := max_le hd.le hKinv
   exact Real.one_le_rpow_of_pos_of_le_one_of_nonpos hpos hle he
 
-/-- A finite family of positive numbers has a common positive lower bound. -/
-lemma exists_pos_le_finset {ι : Type*} [DecidableEq ι] (s : Finset ι) (f : ι → ℝ)
-    (hf : ∀ i, 0 < f i) : ∃ δ : ℝ, 0 < δ ∧ ∀ i ∈ s, δ ≤ f i := by
-  induction s using Finset.induction_on with
-  | empty => exact ⟨1, one_pos, fun i hi => absurd hi (Finset.notMem_empty i)⟩
-  | insert a s ha ih =>
-    obtain ⟨δ, hδ, h⟩ := ih
-    refine ⟨min δ (f a), lt_min hδ (hf a), fun i hi => ?_⟩
-    rcases Finset.mem_insert.mp hi with rfl | hi
-    · exact min_le_right _ _
-    · exact (min_le_left _ _).trans (h i hi)
-
-/-- The marks stay uniformly separated on the circles of all scales of a sequence tending to
-zero in the scale, that is, of lengths tending to infinity. -/
-theorem compact_mark_separation {n : ℕ} (marks : Fin n → ℝ) (ell : Scales)
-    (hell : Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) atTop (𝓝 0))
-    (hinj : ∀ N : ℕ+, Function.Injective
-      (fun j : Fin n => ((marks j : ℝ) : Circle (observationLength (ell N))))) :
-    ∃ δ : ℝ, 0 < δ ∧ ∀ (N : ℕ+) (i k : Fin n), i ≠ k →
-      δ ≤ circDist (observationLength (ell N)).val (marks i - marks k) := by
-  classical
-  have hmarks : Function.Injective marks := by
-    intro i k hik
-    apply hinj 1
-    simp only [hik]
-  obtain ⟨δ0, hδ0, hδ0sep⟩ := exists_pos_le_dist_of_injective hmarks
-  have hδ0' : ∀ i k : Fin n, i ≠ k → δ0 ≤ |marks i - marks k| := fun i k hik => by
-    have := hδ0sep i k hik
-    rwa [Real.dist_eq] at this
-  set D : ℝ := ∑ i, ∑ k, |marks i - marks k| with hD
-  have hDle : ∀ i k : Fin n, |marks i - marks k| ≤ D := by
-    intro i k
-    have h1 : |marks i - marks k| ≤ ∑ k', |marks i - marks k'| :=
-      Finset.single_le_sum (f := fun k' => |marks i - marks k'|)
-        (fun k' _ => abs_nonneg _) (Finset.mem_univ k)
-    have h2 : ∑ k', |marks i - marks k'| ≤ D :=
-      Finset.single_le_sum (f := fun i' => ∑ k', |marks i' - marks k'|)
-        (fun i' _ => Finset.sum_nonneg fun _ _ => abs_nonneg _) (Finset.mem_univ i)
-    linarith
-  have hD0 : 0 ≤ D := Finset.sum_nonneg fun i _ => Finset.sum_nonneg fun k _ => abs_nonneg _
-  have hT : 0 < 2 * D + 2 := by linarith
-  have hε : (0 : ℝ) < 1 / (2 * D + 2) := by positivity
-  obtain ⟨K0, hK0⟩ := Filter.eventually_atTop.1 (hell.eventually (Iio_mem_nhds hε))
-  -- The finitely many circles of small length.
-  have hfin : ∀ k : ℕ, ∃ d : ℝ, 0 < d ∧ ∀ i k' : Fin n, i ≠ k' →
-      d ≤ circDist (observationLength (ell ⟨k + 1, Nat.succ_pos k⟩)).val
-        (marks i - marks k') := by
-    intro k
-    obtain ⟨d, hd, hdsep⟩ := exists_pos_le_dist_of_injective (hinj ⟨k + 1, Nat.succ_pos k⟩)
-    refine ⟨d, hd, fun i k' hik => ?_⟩
-    have h1 := hdsep i k' hik
-    rwa [dist_coe_eq_circDist_sub (observationLength _).property] at h1
-  choose G hGpos hGsep using hfin
-  obtain ⟨δf, hδf, hδfle⟩ := exists_pos_le_finset (Finset.range K0) G hGpos
-  refine ⟨min δ0 δf, lt_min hδ0 hδf, fun N i k hik => ?_⟩
-  obtain ⟨k₀, hk₀⟩ : ∃ k₀ : ℕ, (N : ℕ) = k₀ + 1 := ⟨(N : ℕ) - 1, by have := N.pos; omega⟩
-  have hN : N = ⟨k₀ + 1, Nat.succ_pos k₀⟩ := PNat.eq hk₀
-  subst hN
-  by_cases hsmall : k₀ < K0
-  · exact (min_le_right _ _).trans
-      ((hδfle k₀ (Finset.mem_range.mpr hsmall)).trans (hGsep k₀ i k hik))
-  · have hsmall' : K0 ≤ k₀ := not_lt.mp hsmall
-    have hℓ := hK0 k₀ hsmall'
-    have hℓpos : 0 < (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val := (ell _).property.1
-    have hLD : 2 * D + 2 < (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val⁻¹ := by
-      have h1 : (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val * (2 * D + 2) < 1 :=
-        (lt_div_iff₀ hT).1 hℓ
-      have hinv : (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val *
-          (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val⁻¹ = 1 := mul_inv_cancel₀ hℓpos.ne'
-      nlinarith [mul_pos (sub_pos.2 h1) (inv_pos.2 hℓpos)]
-    show min δ0 δf ≤ circDist (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val⁻¹ (marks i - marks k)
-    have hle : |marks i - marks k| ≤ (ell ⟨k₀ + 1, Nat.succ_pos k₀⟩).val⁻¹ / 2 := by
-      linarith [hDle i k]
-    rw [circDist_eq_abs (inv_pos.mpr hℓpos) hle]
-    exact (min_le_left _ _).trans (hδ0' i k hik)
-
-/-- The compact decomposition: on the circles of the shrinking scales, the regularized transport
-is a sum of `n + 1` smooth periodic pieces with envelopes, with constants independent of `N`,
-`h` and the transport. -/
-theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfile p)
-    (η B C₀ : ℝ) (n : ℕ+) (marks : Fin (n : ℕ) → ℝ) (α : ℝ)
-    (hη : 0 < η) (hB : 0 < B) (hC₀ : 0 < C₀) (hα0 : P.val.2 - 1 < α) (hα1 : α < P.val.2 / 2)
-    (ell : Scales)
-    (hell : Filter.Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) Filter.atTop
-      (nhds 0))
-    (hreg : ∀ N : ℕ+,
-      PrimitiveRegularity (observationLength (ell N)) η P.val.2 B
+/-- Fixed cutoffs around the selected compact marks give translated derivative envelopes.
+The marks, cutoff radius, number of pieces and coefficient precede every scale sequence.
+The derivative bounds allow a larger interior exponent. -/
+theorem varAl_envelope_compact_uniform (P : Parameters) (p : Profile) (hp : CompactProfile p)
+    (η B C₀ : ℝ) (n : ℕ+) (marks : Fin (n : ℕ) → ℝ) (α α' : ℝ)
+    (hη : 0 < η) (hB : 0 ≤ B) (hC₀ : 0 ≤ C₀) (hα0 : P.val.2 - 1 ≤ α) (hα1 : α < P.val.2 / 2)
+    (hαα' : α ≤ α') (hα'0 : P.val.2 - 1 < α') (hα'1 : α' < P.val.2 / 2)
+    (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
+    ∃ (m : ℕ) (C : ℝ), 0 < C ∧ ∀ ell : Scales,
+      Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) atTop (𝓝 0) →
+      (∀ N : ℕ+,
+        PrimitiveRegularity (observationLength (ell N)) η P.val.2 B
           ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
         TransportRegularity P (observationLength (ell N))
-          ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ n marks α C₀)
-    (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
-    ∃ (m : ℕ) (C : ℝ), 0 < C ∧ ∀ (N : ℕ+) (h : ℝ),
+          ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ n marks α C₀) →
+      ∀ (N : ℕ+) (h : ℝ),
       1 ≤ (N : ℝ) * (ell N).val → ((N : ℝ) * (ell N).val)⁻¹ ≤ h → h ≤ 1 →
       ∀ ψ : {g : Circle (observationLength (ell N)) → ℝ //
           MemLp (fun x => (g x : ℂ)) 2 (arclength (observationLength (ell N)))},
@@ -284,16 +210,16 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
               (∀ x : ℝ, |deriv (fun t => φ j (t + a)) x| ≤
                   C * (if circDist (observationLength (ell N)).val x < 1 then
                     max (circDist (observationLength (ell N)).val x)
-                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 - P.val.2 + α))
+                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 - P.val.2 + α'))
                     else circDist (observationLength (ell N)).val x ^ (P.val.2 - 2))) ∧
               (∀ x : ℝ, |deriv (deriv (fun t => φ j (t + a))) x| ≤
                   C * (if circDist (observationLength (ell N)).val x < 1 then
                     max (circDist (observationLength (ell N)).val x)
-                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 + (1 - P.val.2 + α)))
+                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 + (1 - P.val.2 + α')))
                     else circDist (observationLength (ell N)).val x ^ (P.val.2 - 3)))) := by
   classical
-  -- Separation of the marks, uniform in `N`, and the cutoff radius.
-  obtain ⟨δ, hδ0, hδsep⟩ := compact_mark_separation marks ell hell (fun N => (hreg N).2.1)
+  obtain ⟨m, a, C₀', δ, hC₀', hδ0, hsep, hreplace⟩ := Internal.regMicro_compact_marks
+    P p hp η B C₀ α n marks hη hB hC₀ hα0 hα1
   obtain ⟨r, hr_def⟩ : ∃ r : ℝ, r = min (δ / 6) (1 / 16) := ⟨_, rfl⟩
   have hr : 0 < r := by
     rw [hr_def]
@@ -308,60 +234,59 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
   have hζ0 : ∀ s, 2 * r ≤ |s| → cutoffBump r s = 0 := fun s hs => cutoffBump_eq_zero hr hs
   obtain ⟨M1, M2, hM1, hM2⟩ := exists_bounds_deriv_bump (contDiff_cutoffBump r) hζ0
   -- The transports and the sup bound, with constants before the scales.
-  have hα0' : P.val.2 - 1 ≤ α := hα0.le
-  obtain ⟨C₁, hC₁, hT1⟩ := regUniform_firstTransport_compact P p hp η B n marks α α C₀ hη
-    hB.le hC₀.le hα0' hα1 le_rfl hα0 hα1 ρ hρ
-  obtain ⟨C₂, hC₂, hT2⟩ := regUniform_secondTransport_compact P p hp η B n marks α α C₀ hη
-    hB.le hC₀.le hα0' hα1 le_rfl hα0 hα1 ρ hρ
-  obtain ⟨Ct, hCt, hTails⟩ := regUniform_transportTails_compact P p hp η B n marks α α C₀ hη
-    hB.le hC₀.le hα0' hα1 le_rfl hα0 hα1 ρ hρ
-  obtain ⟨Cs, hCs, hsup⟩ := regUniform_transport_sup P η B hη hB.le
-  have hb : 0 < 1 - P.val.2 + α := by linarith
+  obtain ⟨C₁, hC₁, hT1⟩ := regUniform_firstTransport_compact P p hp η B m a α α' C₀' hη
+    hB hC₀'.le hα0 hα1 hαα' hα'0 hα'1 ρ hρ
+  obtain ⟨C₂, hC₂, hT2⟩ := regUniform_secondTransport_compact P p hp η B m a α α' C₀' hη
+    hB hC₀'.le hα0 hα1 hαα' hα'0 hα'1 ρ hρ
+  obtain ⟨Ct, hCt, hTails⟩ := regUniform_transportTails_compact P p hp η B m a α α' C₀' hη
+    hB hC₀'.le hα0 hα1 hαα' hα'0 hα'1 ρ hρ
+  obtain ⟨Cs, hCs, hsup⟩ := regUniform_transport_sup P η B hη hB
+  have hb : 0 < 1 - P.val.2 + α' := by linarith
   have hs1 : P.val.2 < 1 := P.property.2.2
   have hA : 0 ≤ max C₁ C₂ := le_trans hC₁.le (le_max_left _ _)
   have hM1nn : 0 ≤ M1 := (abs_nonneg _).trans (hM1 0)
   have hM2nn : 0 ≤ M2 := (abs_nonneg _).trans (hM2 0)
   -- The radius beyond which the tails apply.
-  obtain ⟨R, hRdef⟩ : ∃ R : ℝ, R = 2 + ∑ j, |marks j| := ⟨_, rfl⟩
+  obtain ⟨R, hRdef⟩ : ∃ R : ℝ, R = 2 + ∑ j, |a j| := ⟨_, rfl⟩
   have hR2 : 2 ≤ R := by
-    have : 0 ≤ ∑ j, |marks j| := Finset.sum_nonneg fun j _ => abs_nonneg _
+    have : 0 ≤ ∑ j, |a j| := Finset.sum_nonneg fun j _ => abs_nonneg _
     linarith
-  have hRa : ∀ i, |marks i| ≤ R - 2 := by
+  have hRa : ∀ i, |a i| ≤ R - 2 := by
     intro i
-    have h1 : |marks i| ≤ ∑ j, |marks j| :=
-      Finset.single_le_sum (f := fun j => |marks j|) (fun j _ => abs_nonneg _)
+    have h1 : |a i| ≤ ∑ j, |a j| :=
+      Finset.single_le_sum (f := fun j => |a j|) (fun j _ => abs_nonneg _)
         (Finset.mem_univ i)
     linarith
   -- The constant of the envelopes, independent of `N`, `h` and the transport.
-  obtain ⟨R1, hR1⟩ : ∃ R1 : ℝ, R1 = ((n : ℕ) : ℝ) * M1 * Cs +
-      (1 + ((n : ℕ) : ℝ)) * (max C₁ C₂ * (1 + ((n : ℕ) : ℝ) *
-        r ^ (-(1 - P.val.2 + α)))) := ⟨_, rfl⟩
-  obtain ⟨R2, hR2def⟩ : ∃ R2 : ℝ, R2 = ((n : ℕ) : ℝ) * M2 * Cs +
-      2 * (((n : ℕ) : ℝ) * M1) * (max C₁ C₂ * (1 + ((n : ℕ) : ℝ) *
-        r ^ (-(1 - P.val.2 + α)))) +
-      (1 + ((n : ℕ) : ℝ)) * (max C₁ C₂ * (1 + ((n : ℕ) : ℝ) *
-        r ^ (-1 - (1 - P.val.2 + α)))) := ⟨_, rfl⟩
-  have hvc := varAlConst_bounds (p := (n : ℕ)) hM1nn hM2nn hCs.le hA hr (1 - P.val.2 + α)
-  obtain ⟨Kc, hKc⟩ : ∃ K : ℝ, K = varAlConst M1 M2 Cs (max C₁ C₂) r (n : ℕ)
-      (1 - P.val.2 + α) + Ct + |R1| * R ^ (2 - P.val.2) + |R2| * R ^ (3 - P.val.2) :=
+  obtain ⟨R1, hR1⟩ : ∃ R1 : ℝ, R1 = ((m : ℕ) : ℝ) * M1 * Cs +
+      (1 + ((m : ℕ) : ℝ)) * (max C₁ C₂ * (1 + ((m : ℕ) : ℝ) *
+        r ^ (-(1 - P.val.2 + α')))) := ⟨_, rfl⟩
+  obtain ⟨R2, hR2def⟩ : ∃ R2 : ℝ, R2 = ((m : ℕ) : ℝ) * M2 * Cs +
+      2 * (((m : ℕ) : ℝ) * M1) * (max C₁ C₂ * (1 + ((m : ℕ) : ℝ) *
+        r ^ (-(1 - P.val.2 + α')))) +
+      (1 + ((m : ℕ) : ℝ)) * (max C₁ C₂ * (1 + ((m : ℕ) : ℝ) *
+        r ^ (-1 - (1 - P.val.2 + α')))) := ⟨_, rfl⟩
+  have hvc := varAlConst_bounds (p := (m : ℕ)) hM1nn hM2nn hCs.le hA hr (1 - P.val.2 + α')
+  obtain ⟨Kc, hKc⟩ : ∃ K : ℝ, K = varAlConst M1 M2 Cs (max C₁ C₂) r (m : ℕ)
+      (1 - P.val.2 + α') + Ct + |R1| * R ^ (2 - P.val.2) + |R2| * R ^ (3 - P.val.2) :=
     ⟨_, rfl⟩
-  have hR1le : R1 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (n : ℕ) (1 - P.val.2 + α) := by
+  have hR1le : R1 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (m : ℕ) (1 - P.val.2 + α') := by
     have := hvc.2.2.1
     rw [hR1]
     exact this
-  have hR2le : R2 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (n : ℕ) (1 - P.val.2 + α) := by
+  have hR2le : R2 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (m : ℕ) (1 - P.val.2 + α') := by
     have := hvc.2.2.2.1
     rw [hR2def]
     exact this
   have hRpow1 : 0 ≤ R ^ (2 - P.val.2) := Real.rpow_nonneg (by linarith) _
   have hRpow2 : 0 ≤ R ^ (3 - P.val.2) := Real.rpow_nonneg (by linarith) _
-  have hvc1 : 1 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (n : ℕ) (1 - P.val.2 + α) := hvc.2.2.2.2
+  have hvc1 : 1 ≤ varAlConst M1 M2 Cs (max C₁ C₂) r (m : ℕ) (1 - P.val.2 + α') := hvc.2.2.2.2
   have hK0 : 0 ≤ Kc := by
     rw [hKc]
     have := mul_nonneg (abs_nonneg R1) hRpow1
     have := mul_nonneg (abs_nonneg R2) hRpow2
     linarith
-  have hKgeV : varAlConst M1 M2 Cs (max C₁ C₂) r (n : ℕ) (1 - P.val.2 + α) ≤ Kc := by
+  have hKgeV : varAlConst M1 M2 Cs (max C₁ C₂) r (m : ℕ) (1 - P.val.2 + α') ≤ Kc := by
     rw [hKc]
     have := mul_nonneg (abs_nonneg R1) hRpow1
     have := mul_nonneg (abs_nonneg R2) hRpow2
@@ -387,8 +312,20 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
   have hK2a : R1 ≤ Kc := le_trans hR1le hKgeV
   have hK2b : R2 ≤ Kc := le_trans hR2le hKgeV
   have hKcpos : 0 < Kc := lt_of_lt_of_le one_pos (le_trans hvc1 hKgeV)
-  refine ⟨(n : ℕ) + 1, Kc, hKcpos, ?_⟩
-  intro N h hN hNh hh1 ψ hψcoeff hψcont
+  refine ⟨(m : ℕ) + 1, Kc, hKcpos, ?_⟩
+  intro ell hell hreg N h hN hNh hh1 ψ hψcoeff hψcont
+  have hselected : ∀ N : ℕ+,
+      PrimitiveRegularity (observationLength (ell N)) η P.val.2 B
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
+      TransportRegularity P (observationLength (ell N))
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ m a α C₀' :=
+    fun N => ⟨(hreg N).1, hreplace ell hell hreg (ell N) (hreg N).1⟩
+  have hδsep (i k : Fin (m : ℕ)) (hik : i ≠ k) :
+      δ ≤ circDist (observationLength (ell N)).val (a i - a k) := by
+    have hL : 1 ≤ (observationLength (ell N)).val :=
+      (one_le_inv₀ (ell N).property.1).mpr (ell N).property.2
+    simpa only [dist_coe_eq_circDist_sub (observationLength (ell N)).property] using
+      hsep (observationLength (ell N)).val hL i k hik
   -- The circle of this scale.
   have hℓpos : 0 < (ell N).val := (ell N).property.1
   have hℓle : (ell N).val ≤ 1 := (ell N).property.2
@@ -401,11 +338,11 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
   have hK1 : (1 : ℝ) ≤ (N : ℝ) * (ell N).val := hN
   -- The transports and the sup bound on this circle, identified with `ψ` by uniqueness.
   obtain ⟨ψ₁, hψ₁c, hψ₁m, hψ₁coeff, hD1raw⟩ :=
-    hT1 ell hell hreg (ell N) (hreg N).1 (hreg N).2
+    hT1 ell hell hselected (ell N) (hselected N).1 (hselected N).2
   obtain ⟨ψ₂, hψ₂c, hψ₂m, hψ₂coeff, hD2raw⟩ :=
-    hT2 ell hell hreg (ell N) (hreg N).1 (hreg N).2
+    hT2 ell hell hselected (ell N) (hselected N).1 (hselected N).2
   obtain ⟨ψt, hψtc, hψtm, hψtcoeff, htail⟩ :=
-    hTails ell hell hreg (ell N) (hreg N).1 (hreg N).2
+    hTails ell hell hselected (ell N) (hselected N).1 (hselected N).2
   obtain ⟨ψs, hψsc, hψsm, hψscoeff, -, hψsmoll⟩ :=
     hsup (observationLength (ell N))
       ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩
@@ -446,41 +383,41 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
     rw [hF]
     exact h1
   have hD1 : ∀ x, |deriv F x| ≤ max C₁ C₂ * (1 + ∑ k, max
-      (circDist (observationLength (ell N)).val (x - marks k)) h ^ (-(1 - P.val.2 + α))) := by
+      (circDist (observationLength (ell N)).val (x - a k)) h ^ (-(1 - P.val.2 + α'))) := by
     intro x
     have h1 := hD1raw h hh0 hh1 x
     rw [← hψ1] at h1
     simp only [dist_coe_eq_circDist_sub hLpos] at h1
-    have e : -1 + P.val.2 - α = -(1 - P.val.2 + α) := by ring
+    have e : -1 + P.val.2 - α' = -(1 - P.val.2 + α') := by ring
     rw [e] at h1
     rw [hF]
-    have hsum0 : 0 ≤ ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-        (-(1 - P.val.2 + α)) :=
+    have hsum0 : 0 ≤ ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+        (-(1 - P.val.2 + α')) :=
       Finset.sum_nonneg fun k _ => Real.rpow_nonneg (le_max_of_le_right hh0.le) _
-    calc _ ≤ C₁ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-          (-(1 - P.val.2 + α))) := h1
-      _ ≤ max C₁ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-          (-(1 - P.val.2 + α))) := mul_le_mul_of_nonneg_right (le_max_left _ _) (by linarith)
+    calc _ ≤ C₁ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+          (-(1 - P.val.2 + α'))) := h1
+      _ ≤ max C₁ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+          (-(1 - P.val.2 + α'))) := mul_le_mul_of_nonneg_right (le_max_left _ _) (by linarith)
   have hD2 : ∀ x, |deriv (deriv F) x| ≤ max C₁ C₂ * (1 + ∑ k, max
-      (circDist (observationLength (ell N)).val (x - marks k)) h ^
-        (-1 - (1 - P.val.2 + α))) := by
+      (circDist (observationLength (ell N)).val (x - a k)) h ^
+        (-1 - (1 - P.val.2 + α'))) := by
     intro x
     have h1 := hD2raw h hh0 hh1 x
     rw [← hψ2] at h1
     simp only [dist_coe_eq_circDist_sub hLpos] at h1
-    have e : -2 + P.val.2 - α = -1 - (1 - P.val.2 + α) := by ring
+    have e : -2 + P.val.2 - α' = -1 - (1 - P.val.2 + α') := by ring
     rw [e] at h1
     rw [hF]
-    have hsum0 : 0 ≤ ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-        (-1 - (1 - P.val.2 + α)) :=
+    have hsum0 : 0 ≤ ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+        (-1 - (1 - P.val.2 + α')) :=
       Finset.sum_nonneg fun k _ => Real.rpow_nonneg (le_max_of_le_right hh0.le) _
-    calc _ ≤ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-          (-1 - (1 - P.val.2 + α))) := h1
-      _ ≤ max C₁ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - marks k)) h ^
-          (-1 - (1 - P.val.2 + α))) := mul_le_mul_of_nonneg_right (le_max_right _ _) (by linarith)
+    calc _ ≤ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+          (-1 - (1 - P.val.2 + α'))) := h1
+      _ ≤ max C₁ C₂ * (1 + ∑ k, max (circDist (observationLength (ell N)).val (x - a k)) h ^
+          (-1 - (1 - P.val.2 + α'))) := mul_le_mul_of_nonneg_right (le_max_right _ _) (by linarith)
   -- The pieces and their envelopes on this circle.
-  obtain ⟨hpc, hsum, hsing, hrem⟩ := pieces_envelope_general hL1 hr hr16 hδr hM1 hM2 marks
-    (fun i k hik => hδsep N i k hik) hFC hFP hFS hA hb hN hNh hD1 hD2
+  obtain ⟨hpc, hsum, hsing, hrem⟩ := pieces_envelope_general hL1 hr hr16 hδr hM1 hM2 a
+    (fun i k hik => hδsep i k hik) hFC hFP hFS hA hb hN hNh hD1 hD2
   -- The central tail bound for `F`, and the far-field equality of the remainder.
   have hcen : ∀ y : ℝ, 2 ≤ |y| → |y| ≤ (observationLength (ell N)).val / 2 →
       |deriv F y| ≤ Ct * |y| ^ (P.val.2 - 2) ∧ |deriv (deriv F) y| ≤ Ct * |y| ^ (P.val.2 - 3) := by
@@ -489,14 +426,14 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
     rw [← hψt, ← hF] at h1
     exact h1
   have hfar : ∀ y : ℝ, R ≤ circDist (observationLength (ell N)).val y →
-      ∀ i, 2 * r < circDist (observationLength (ell N)).val (y - marks i) := by
+      ∀ i, 2 * r < circDist (observationLength (ell N)).val (y - a i) := by
     intro y hy i
-    have h1 := circDist_add_le hLpos (y - marks i) (marks i)
+    have h1 := circDist_add_le hLpos (y - a i) (a i)
     rw [sub_add_cancel] at h1
-    have h2 := circDist_le_abs' hLpos (marks i)
+    have h2 := circDist_le_abs' hLpos (a i)
     have h3 := hRa i
     linarith
-  refine ⟨varAlPiece (cutoffBump r) (observationLength (ell N)).val marks F,
+  refine ⟨varAlPiece (cutoffBump r) (observationLength (ell N)).val a F,
     fun j => ⟨(hpc j).1, (hpc j).2,
       lipschitz_of_periodic_contDiff hLpos (hpc j).1 (hpc j).2⟩,
     fun x => by rw [← hF]; exact hsum x, ?_⟩
@@ -507,40 +444,40 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
     · simp only [add_zero]
       have hW : circDist (observationLength (ell N)).val x < 1 →
           1 ≤ max (circDist (observationLength (ell N)).val x) ((N : ℝ) * (ell N).val)⁻¹ ^
-            (-(1 - P.val.2 + α)) := fun hd =>
+            (-(1 - P.val.2 + α')) := fun hd =>
         one_le_weight_of_lt hd hK1 (by linarith)
-      have hv : |deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val marks F
-          (Fin.last (n : ℕ))) x| ≤ R1 := by
+      have hv : |deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val a F
+          (Fin.last (m : ℕ))) x| ≤ R1 := by
         rw [hR1]
         exact (hrem x).1
       exact weighted_remainder_bound (k := 2) (s := P.val.2) (A0 := R1) (Ct := Ct) (R := R)
         (K := Kc) (circDist_nonneg _ _) hR2 (by linarith) hW hv
         (fun hRd => by
-          obtain ⟨e1, -⟩ := remainder_eq_near hLpos hζ0 marks F
+          obtain ⟨e1, -⟩ := remainder_eq_near hLpos hζ0 a F
             (hfar x hRd)
           rw [e1]
           exact (tail_of_central hLpos hFP hcen x (by linarith)).1)
         hK1a hK2a hKgeT hK0
     · simp only [add_zero]
-      rw [show -(1 + (1 - P.val.2 + α)) = -1 - (1 - P.val.2 + α) by ring]
+      rw [show -(1 + (1 - P.val.2 + α')) = -1 - (1 - P.val.2 + α') by ring]
       have hW : circDist (observationLength (ell N)).val x < 1 →
           1 ≤ max (circDist (observationLength (ell N)).val x) ((N : ℝ) * (ell N).val)⁻¹ ^
-            (-1 - (1 - P.val.2 + α)) := fun hd =>
+            (-1 - (1 - P.val.2 + α')) := fun hd =>
         one_le_weight_of_lt hd hK1 (by linarith)
-      have hv : |deriv (deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val marks F
-          (Fin.last (n : ℕ)))) x| ≤ R2 := by
+      have hv : |deriv (deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val a F
+          (Fin.last (m : ℕ)))) x| ≤ R2 := by
         rw [hR2def]
         exact (hrem x).2
       exact weighted_remainder_bound (k := 3) (s := P.val.2) (A0 := R2) (Ct := Ct) (R := R)
         (K := Kc) (circDist_nonneg _ _) hR2 (by linarith) hW hv
         (fun hRd => by
-          obtain ⟨-, e2⟩ := remainder_eq_near hLpos hζ0 marks F
+          obtain ⟨-, e2⟩ := remainder_eq_near hLpos hζ0 a F
             (hfar x hRd)
           rw [e2]
           exact (tail_of_central hLpos hFP hcen x (by linarith)).2)
         hK1b hK2b hKgeT hK0
   · -- A singular piece, translated to its mark.
-    refine ⟨marks i, fun x => ?_, fun x => ?_⟩
+    refine ⟨a i, fun x => ?_, fun x => ?_⟩
     · rw [deriv_comp_add_const]
       have hs := (hsing i x).1
       split_ifs at hs ⊢ with hd
@@ -549,12 +486,12 @@ theorem varAl_envelope_compact (P : Parameters) (p : Profile) (hp : CompactProfi
       · rw [mul_zero] at hs
         exact hs.trans (mul_nonneg hK0 (Real.rpow_nonneg (circDist_nonneg _ _) _))
     · have hfun : deriv (fun t => varAlPiece (cutoffBump r) (observationLength (ell N)).val
-          marks F (Fin.castSucc i) (t + marks i)) =
-          fun t => deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val marks F
-            (Fin.castSucc i)) (t + marks i) :=
+          a F (Fin.castSucc i) (t + a i)) =
+          fun t => deriv (varAlPiece (cutoffBump r) (observationLength (ell N)).val a F
+            (Fin.castSucc i)) (t + a i) :=
         funext fun t => deriv_comp_add_const _ _ _
       rw [hfun, deriv_comp_add_const,
-        show -(1 + (1 - P.val.2 + α)) = -1 - (1 - P.val.2 + α) by ring]
+        show -(1 + (1 - P.val.2 + α')) = -1 - (1 - P.val.2 + α') by ring]
       have hs := (hsing i x).2
       split_ifs at hs ⊢ with hd
       · exact hs.trans (mul_le_mul_of_nonneg_right hKgeV

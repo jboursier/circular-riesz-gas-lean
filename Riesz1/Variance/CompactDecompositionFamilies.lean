@@ -34,6 +34,9 @@ theorem compactDecomposition_transport_families
     (hη : 0 < η) (hB : 0 ≤ B) (hC₀ : 0 ≤ C₀)
     (hα : P.val.2 - 1 ≤ α) (hα2 : α < P.val.2 / 2) (hαα' : α ≤ α')
     (hα' : P.val.2 - 1 < α') (hα'2 : α' < P.val.2 / 2)
+    (δ : ℝ) (hδ : 0 < δ)
+    (hsep : ∀ c : Scale, ∀ i k, i ≠ k →
+      δ ≤ circDist c.val⁻¹ (marks i - marks k))
     (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
     ∃ C : ℝ, 0 < C ∧ ∀ ell : Scales,
       Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) atTop (𝓝 0) →
@@ -92,9 +95,9 @@ theorem compactDecomposition_transport_families
     rcases he with rfl | rfl <;> dsimp [A] <;>
       nlinarith [Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 2) (2 - P.val.2),
         Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 2) (3 - P.val.2)]
-  obtain ⟨E, hE, hsplit⟩ := compactDecomposition (n : ℕ) marks P.val.2 (1 - P.val.2 + α')
-    P.property.2.2 (by linarith) (by linarith [P.property.2.1])
-  refine ⟨E * A, mul_pos hE hA, fun ell hell hreg N => ?_⟩
+  obtain ⟨E, hE, hsplit⟩ := varAlPieces_fixed_uniform (n : ℕ) marks
+    P.property.2.2 (by linarith : 0 < 1 - P.val.2 + α') hCf.le hA.le hδ
+  refine ⟨E, hE, fun ell hell hreg N => ?_⟩
   let a := ell N
   let L := observationLength a
   obtain ⟨q, hqc, hqf, hqfamily⟩ := hfamily ell hell hreg a (hreg N).1 (hreg N).2
@@ -205,7 +208,8 @@ theorem compactDecomposition_transport_families
           _ = (Ct + Ct * 2 ^ (3 - P.val.2)) * circDist L.val x ^ (P.val.2 - 3) := by ring
           _ ≤ A * circDist L.val x ^ (P.val.2 - 3) := mul_le_mul_of_nonneg_right
             (hsumA _ (Or.inr rfl)) (Real.rpow_nonneg (circDist_nonneg _ _) _)
-  exact hsplit L ⟨h, hh0⟩ ((N : ℝ) * a.val) A
-    ((one_le_inv₀ a.property.1).mpr a.property.2) hK hh hA.le F hF hFp h1 h2 htail
+  exact hsplit L.val ((N : ℝ) * a.val) h
+    ((one_le_inv₀ a.property.1).mpr a.property.2) (hsep a) hK hh F hF hFp
+    (fun x => (hb h hh0 hh1 x).1) h1 h2 htail
 
 end Riesz1.Internal

@@ -14,7 +14,7 @@ The second error bound in the proof of Theorem 3: both variances and the second 
 The proof inputs are exactly the a-priori conclusion and the
 loop-variance assertion, together with the Prékopa–Leindler inequality
 `External.PrekopaLeindler`, used for loop square integrability. Every coefficient precedes the scale
-sequence. The separation-free derivative decomposition includes all
+sequence. The fixed-cutoff derivative decomposition includes all
 initial observation circles and the endpoint `α = s - 1`.
 -/
 

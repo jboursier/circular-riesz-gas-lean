@@ -109,6 +109,9 @@ lemma nondegeneracy_scale_seminorm_lowerSemicontinuous (p : Profile) (r : ℝ) :
     exact (ENNReal.continuous_ofReal.comp
       (continuous_const.mul ((nondegeneracy_scale_coeff_continuous p k).norm.pow 2))).lowerSemicontinuous
 
+/-- On the scales from `t` to `1`, a nonzero compact profile has a positive lower bound for the
+unsmoothed variance. The bound is the minimum of a lower semicontinuous function on a compact
+interval, and the function is positive at each scale. -/
 lemma nondegeneracy_compact_away_zero (P : Parameters) (p : Profile)
     (hp : CompactProfile p) (hz : ¬ zeroExtension p =ᵐ[volume] fun _ => 0)
     (hfin : ∀ a : Scale, circleVariance P p a < ⊤)
@@ -157,27 +160,27 @@ lemma nondegeneracy_compact_away_zero (P : Parameters) (p : Profile)
   have hr := ENNReal.toReal_mono (hfin a).ne hlow
   simpa only [ENNReal.toReal_mul, ENNReal.toReal_ofReal hA.le] using hr
 
+/-- For one admissible sequence, the unsmoothed compact variance has a positive lower bound on
+every observation scale. The small-scale estimate covers the scales below its threshold. The
+scales from that threshold up to one are covered by `nondegeneracy_compact_away_zero`, because
+the bound of `clt_nondegeneracy_compact_unsmoothed` must hold on every scale and not only on the
+scales of a sequence tending to zero. -/
 lemma nondegeneracy_compact_uniform_of_admissible (P : Parameters) (p : Profile)
     (hp : CompactProfile p) (ell : Scales) (α : ℝ) (d : TestData)
     (h : Admissible P p ell α d)
     (hz : ¬ zeroExtension p =ᵐ[volume] fun _ => 0) :
     ∃ c : ℝ, 0 < c ∧ ∀ a : Scale, circleVariance P p a < ⊤ ∧
       c ≤ Real.sqrt (circleVariance P p a).toReal := by
-  obtain ⟨c₀, t₀, hc₀, ht₀, hsmall⟩ :=
-    nondegeneracy_compact_small_scales_of_admissible P p hp ell α d h hz
+  obtain ⟨c₀, t₀, hc₀, ht₀, hsmall⟩ := clt_nondegeneracy_compact_small_scales P p hp α d hz
   obtain ⟨_, _, _, _, hcomp⟩ := admissible_compact_variance P p hp ell α d h
     ((zeroExtensionL2 p).toLp _) (zeroExtensionL2 p).coeFn_toLp
   have hfin (a : Scale) := (hcomp a).2.1
-  let t := min t₀ 1 / 2
-  have ht : 0 < t := half_pos (lt_min ht₀ one_pos)
-  have ht1 : t ≤ 1 := by dsimp [t]; linarith [min_le_right t₀ (1 : ℝ)]
-  obtain ⟨c₁, hc₁, hlarge⟩ := nondegeneracy_compact_away_zero P p hp hz hfin ht ht1
+  obtain ⟨c₁, hc₁, hlarge⟩ := nondegeneracy_compact_away_zero P p hp hz hfin
+    (lt_min ht₀ one_pos) (min_le_right t₀ 1)
   refine ⟨min c₀ c₁, lt_min hc₀ hc₁, fun a => ⟨hfin a, ?_⟩⟩
   by_cases ha : a.val < t₀
-  · exact (min_le_left _ _).trans (hsmall a ha).2
-  · exact (min_le_right _ _).trans (hlarge a (by
-      dsimp [t]
-      linarith [min_le_left t₀ (1 : ℝ)]))
+  · exact (min_le_left _ _).trans (hsmall ell h a ha).2
+  · exact (min_le_right _ _).trans (hlarge a ((min_le_left t₀ 1).trans (not_lt.mp ha)))
 
 end Internal
 

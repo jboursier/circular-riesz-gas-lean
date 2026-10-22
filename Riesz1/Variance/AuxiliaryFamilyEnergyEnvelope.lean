@@ -175,7 +175,7 @@ theorem auxiliary_family_energy_envelopes (n : ℕ) (marks : Fin n → ℝ)
     nlinarith
   exact (mul_le_mul_of_nonneg_left htotal (sq_nonneg A)).trans_eq (by ring)
 
-/-- The same separation-free energy estimate on the existing
+/-- The same finite-mark energy estimate on the existing
 `bellEnergy`, for the derivative of a smooth periodic transport. -/
 theorem auxiliary_family_transport_energy_envelopes (n : ℕ) (marks : Fin n → ℝ)
     {s b δ : ℝ} (hs : s < 1) (hb : 0 ≤ b) (hδ : 0 < δ) :

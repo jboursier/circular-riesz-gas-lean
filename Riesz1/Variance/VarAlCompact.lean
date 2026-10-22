@@ -5,7 +5,7 @@ Authors: Jeanne Boursier
 -/
 module
 
-public import Riesz1.Variance.CompactDecompositionProfile
+public import Riesz1.Variance.VarAlFinalCompactSequence
 public import Riesz1.Variance.VarAlFinalMacro
 
 /-!
@@ -53,26 +53,11 @@ theorem varAl_loop_variance_compact
               (C * ((N : ℝ) * (ell N).val) ^ (ε + max 1 (2 * (1 - P.val.2 + α)))) := by
   obtain ⟨α', hα', hα'2, hαα', hpower⟩ :=
     Internal.varAlFinal_interior_exponent P.property.2.2 hα hα2
-  obtain ⟨E, hE, hpieces⟩ := Internal.compactDecomposition_profile P p hp d.1 d.2.1 d.2.2.1
-    d.2.2.2.1 d.2.2.2.2 α α' hη hB hC₀ hα hα2 hαα' hα' hα'2 ρ hρ
-  obtain ⟨C, hC, hv⟩ := Internal.varAlFinal_finite_pieces hBE hPL P
-    ((d.2.2.2.1 : ℕ) + 1) hα'.le hα'2 hE hε
+  obtain ⟨C, hC, hbound⟩ := Internal.varAlFinal_compact_sequence hBE hPL P p hp
+    d.1 d.2.1 d.2.2.1 d.2.2.2.1 d.2.2.2.2 α α' hη hB hC₀ hα hα2
+    hαα' hα' hα'2 ρ hρ hε
   refine ⟨C, hC, fun ell hell hreg N h hK hh hh1 ψ hf => ?_⟩
-  obtain ⟨φ, hφ, hsum, henv⟩ := hpieces ell hell hreg N h hK hh hh1 ψ hf
-  have htrans (j : Fin ((d.2.2.2.1 : ℕ) + 1)) : ∃ a : ℝ,
-      (∀ x, |deriv (fun t => φ j (t + a)) x| ≤ E *
-        gradWeightOne P.val.2 (1 - P.val.2 + α') ((N : ℝ) * (ell N).val) (ell N).val⁻¹ x) ∧
-      (∀ x, |deriv (deriv (fun t => φ j (t + a))) x| ≤ E *
-        gradWeightTwo P.val.2 (1 - P.val.2 + α') ((N : ℝ) * (ell N).val) (ell N).val⁻¹ x) := by
-    let a : ℝ := Fin.lastCases 0 d.2.2.2.2 j
-    refine ⟨a, fun x => ?_, fun x => ?_⟩
-    · rw [deriv_comp_add_const]
-      simpa only [a, add_sub_cancel_right] using (henv j (x + a)).1
-    · rw [show deriv (fun t => φ j (t + a)) = fun t => deriv (φ j) (t + a) from
-        funext fun t => deriv_comp_add_const (φ j) a t, deriv_comp_add_const]
-      simpa only [a, add_sub_cancel_right] using (henv j (x + a)).2
-  obtain ⟨hi, hb⟩ := hv N (ell N).val _ φ (ell N).property.1 (ell N).property.2
-    hK hφ hsum htrans
+  obtain ⟨hi, hb⟩ := hbound ell hell hreg N h hK hh hh1 ψ hf
   exact ⟨hi, by rwa [hpower] at hb⟩
 
 end Riesz1

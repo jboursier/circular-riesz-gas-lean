@@ -5,7 +5,7 @@ Authors: Jeanne Boursier
 -/
 module
 
-public import Riesz1.Variance.CompactDecomposition
+public import Riesz1.Variance.VarAlPiecesFixedCutoffs
 public import Riesz1.Variance.RegUniformTails
 public import Riesz1.ToMathlib.CircleMollifyAE
 
@@ -32,6 +32,9 @@ theorem compactDecomposition_profile (P : Parameters) (p : Profile) (hp : Compac
     (hη : 0 < η) (hB : 0 ≤ B) (hC₀ : 0 ≤ C₀)
     (hα : P.val.2 - 1 ≤ α) (hα2 : α < P.val.2 / 2) (hαα' : α ≤ α')
     (hα' : P.val.2 - 1 < α') (hα'2 : α' < P.val.2 / 2)
+    (δ : ℝ) (hδ : 0 < δ)
+    (hsep : ∀ c : Scale, ∀ i k, i ≠ k →
+      δ ≤ circDist c.val⁻¹ (marks i - marks k))
     (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
     ∃ C : ℝ, 0 < C ∧ ∀ ell : Scales,
       Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) atTop (𝓝 0) →
@@ -67,10 +70,10 @@ theorem compactDecomposition_profile (P : Parameters) (p : Profile) (hp : Compac
   have h₁ : C₁ ≤ A := by dsimp [A]; linarith
   have h₂ : C₂ ≤ A := by dsimp [A]; linarith
   have htA : Ct ≤ A := by dsimp [A]; linarith
-  obtain ⟨E, hE, hsplit⟩ := compactDecomposition (n : ℕ) marks P.val.2
-    (1 - P.val.2 + α') P.property.2.2 (by linarith)
-    (by linarith [P.property.2.1])
-  refine ⟨E * A, mul_pos hE hA, fun ell hell hreg N h hK hh hh1 ψ hf => ?_⟩
+  obtain ⟨S, hS, hsup⟩ := regUniform_transport_sup P η B hη hB
+  obtain ⟨E, hE, hsplit⟩ := varAlPieces_fixed_uniform (n : ℕ) marks
+    P.property.2.2 (by linarith : 0 < 1 - P.val.2 + α') hS.le hA.le hδ
+  refine ⟨E, hE, fun ell hell hreg N h hK hh hh1 ψ hf => ?_⟩
   let a := ell N
   let L := observationLength a
   have hh0 : 0 < h := lt_of_lt_of_le (inv_pos.mpr (mul_pos (by positivity) a.property.1)) hh
@@ -109,8 +112,17 @@ theorem compactDecomposition_profile (P : Parameters) (p : Profile) (hp : Compac
     have hb := tail_of_central L.property hFp hcentral x hx
     exact ⟨hb.1.trans (mul_le_mul_of_nonneg_right htA (by positivity)),
       hb.2.trans (mul_le_mul_of_nonneg_right htA (by positivity))⟩
-  obtain ⟨φ, hφ, hsum, henv⟩ := hsplit L ⟨h, hh0⟩ ((N : ℝ) * a.val) A
-    ((one_le_inv₀ a.property.1).mpr a.property.2) hK hh hA.le F hF hFp h1 h2 (fun x hx => ht x (by linarith))
+  obtain ⟨ψs, hsc, hsm, hsf, _, hsbound⟩ := hsup L
+    ⟨periodizedProfile p L, periodizedProfileL2 p a⟩ (hreg N).1
+  have hes : ψs = ψ₁ := continuous_eq_of_coeff_eq hsc hc₁ hsm hm₁
+    (fun k => (hsf k).trans (hf₁ k).symm)
+  have hFS (x : ℝ) : |F x| ≤ S := by
+    have ht := hsbound ρ hρ h hh0 x
+    rw [hes] at ht
+    exact ht
+  obtain ⟨φ, hφ, hsum, henv⟩ := hsplit L.val ((N : ℝ) * a.val) h
+    ((one_le_inv₀ a.property.1).mpr a.property.2) (hsep a) hK hh F hF hFp hFS h1 h2
+    (fun x hx => ht x (by linarith))
   have hae : ψ.val =ᵐ[arclength L] ψ₁ := ae_eq_of_coeff_eq_real ψ.property hm₁
     (fun k => (hf k).trans (hf₁ k).symm)
   have heq : circleMollify ρ L.val h (fun t : ℝ => ψ.val (t : Circle L)) = F :=

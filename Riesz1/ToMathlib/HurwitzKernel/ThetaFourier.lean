@@ -71,20 +71,6 @@ theorem fourierCoeff_cosKernel (t : ℝ) (ht : 0 < t) (k : ℤ) :
       simp only [F, fourierCoeff.const_mul, fourierCoeff_fourier]
       simp [Pi.single_apply]
 
-/-- The Fourier coefficients of the Gaussian periodization. -/
-theorem fourierCoeff_evenKernel (t : ℝ) (ht : 0 < t) (k : ℤ) :
-    fourierCoeff (fun x : UnitAddCircle => (HurwitzZeta.evenKernel x t : ℂ)) k =
-      ((1 / t ^ (1 / 2 : ℝ) * Real.exp (-Real.pi * (k : ℝ) ^ 2 / t) : ℝ) : ℂ) := by
-  have he : (fun x : UnitAddCircle => (HurwitzZeta.evenKernel x t : ℂ)) =
-      (fun x : UnitAddCircle => ((1 / t ^ (1 / 2 : ℝ) : ℝ) : ℂ) *
-        (HurwitzZeta.cosKernel x (1 / t) : ℂ)) := by
-    funext x
-    rw [HurwitzZeta.evenKernel_functional_equation, ofReal_mul]
-  rw [he, fourierCoeff.const_mul, fourierCoeff_cosKernel (1 / t) (by positivity)]
-  push_cast
-  congr 2
-  rw [mul_one_div]
-
 /-- The cosine theta kernel is continuous in its circle variable at positive
 time. The proof uses uniform absolute convergence of its Fourier series. -/
 theorem continuous_cosKernel_complex (t : ℝ) (ht : 0 < t) :
@@ -100,33 +86,6 @@ theorem continuous_cosKernel_complex (t : ℝ) (ht : 0 < t) :
     simp only [norm_mul, Complex.norm_real, Real.norm_of_nonneg (Real.exp_pos _).le,
       fourier_apply, Circle.norm_coe, mul_one, le_refl]
   exact hcont.congr (fun x => (hasSum_cosKernel_fourier x ht).tsum_eq)
-
-/-- Integrability of the cosine theta kernel at positive time. -/
-theorem integrable_cosKernel_complex (t : ℝ) (ht : 0 < t) :
-    Integrable (fun x : UnitAddCircle => (HurwitzZeta.cosKernel x t : ℂ))
-      AddCircle.haarAddCircle :=
-  (continuous_cosKernel_complex t ht).integrable_of_hasCompactSupport
-    (HasCompactSupport.of_compactSpace _)
-
-/-- Integrability of the Gaussian periodization at positive time. -/
-theorem integrable_evenKernel_complex (t : ℝ) (ht : 0 < t) :
-    Integrable (fun x : UnitAddCircle => (HurwitzZeta.evenKernel x t : ℂ))
-      AddCircle.haarAddCircle := by
-  have h := (integrable_cosKernel_complex (1 / t) (by positivity)).const_mul
-    ((1 / t ^ (1 / 2 : ℝ) : ℝ) : ℂ)
-  convert h using 1
-  funext x
-  rw [HurwitzZeta.evenKernel_functional_equation, ofReal_mul]
-
-/-- The Gaussian periodization has spatial mean `t^(-1/2)`. -/
-theorem integral_evenKernel (t : ℝ) (ht : 0 < t) :
-    ∫ x : UnitAddCircle, HurwitzZeta.evenKernel x t ∂AddCircle.haarAddCircle =
-      1 / t ^ (1 / 2 : ℝ) := by
-  have h := fourierCoeff_evenKernel t ht 0
-  simp only [fourierCoeff, neg_zero, fourier_zero, one_smul, Int.cast_zero,
-    zero_pow (by norm_num : (2 : ℕ) ≠ 0), mul_zero, zero_div,
-    Real.exp_zero, mul_one, integral_complex_ofReal] at h
-  exact ofReal_injective h
 
 /-- Absolute deviation from the spatial mean is bounded by the deviation at
 zero. This estimate is useful for the small-time Mellin integral. -/
@@ -146,27 +105,5 @@ theorem abs_cosKernel_sub_one_le (x : UnitAddCircle) (t : ℝ) (ht : 0 < t) :
     exact mul_le_mul_of_nonneg_right
       (mul_le_of_le_one_right (by norm_num : (0 : ℝ) ≤ 2) (Real.abs_cos_le_one _))
       (Real.exp_pos _).le
-
-/-- The Gaussian periodization is nonnegative. -/
-theorem evenKernel_nonneg (x : UnitAddCircle) (t : ℝ) (ht : 0 < t) :
-    0 ≤ HurwitzZeta.evenKernel x t := by
-  induction x using QuotientAddGroup.induction_on with
-  | H a =>
-    rw [← (HurwitzZeta.hasSum_int_evenKernel a ht).tsum_eq]
-    exact tsum_nonneg (fun n => (Real.exp_pos _).le)
-
-/-- A uniform bound for the theta kernel after subtracting its spatial mean. -/
-theorem abs_evenKernel_sub_le (x : UnitAddCircle) (t : ℝ) (ht : 0 < t) :
-    |HurwitzZeta.evenKernel x t - 1 / t ^ (1 / 2 : ℝ)| ≤
-      HurwitzZeta.evenKernel 0 t - 1 / t ^ (1 / 2 : ℝ) := by
-  rw [HurwitzZeta.evenKernel_functional_equation x,
-    HurwitzZeta.evenKernel_functional_equation 0]
-  have hpos : 0 ≤ 1 / t ^ (1 / 2 : ℝ) := by positivity
-  calc
-    _ = (1 / t ^ (1 / 2 : ℝ)) * |HurwitzZeta.cosKernel x (1 / t) - 1| := by
-      rw [← mul_sub_one, abs_mul, abs_of_nonneg hpos]
-    _ ≤ (1 / t ^ (1 / 2 : ℝ)) * (HurwitzZeta.cosKernel 0 (1 / t) - 1) :=
-      mul_le_mul_of_nonneg_left (abs_cosKernel_sub_one_le x (1 / t) (by positivity)) hpos
-    _ = _ := by ring
 
 end Riesz1

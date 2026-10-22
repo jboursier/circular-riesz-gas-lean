@@ -32,7 +32,7 @@ theorem compactDecomposition_optimalScalingTest
     (hα' : P.val.2 - 1 < α') (hα'2 : α' < P.val.2 / 2)
     (hη : 0 < d.1) (hB : 0 ≤ d.2.1) (hC₀ : 0 ≤ d.2.2.1)
     (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
-    ∃ C : ℝ, 0 < C ∧ ∀ ell : Scales,
+    ∃ (n : ℕ+) (marks : Fin (n : ℕ) → ℝ) (C : ℝ), 0 < C ∧ ∀ ell : Scales,
       Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) atTop (𝓝 0) →
       (∀ N, PrimitiveRegularity (observationLength (ell N)) d.1 P.val.2 d.2.1
           ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
@@ -51,21 +51,35 @@ theorem compactDecomposition_optimalScalingTest
               transportCoeffs P (loopMasterLength (ell N))
                 (loopMasterLengthTest _ (cltRegCircle hρ _ hh f)
                   (cltRegCircle_contDiff hρ _ hh f)) k) →
-          ∃ φ : Fin ((d.2.2.2.1 : ℕ) + 1) → ℝ → ℝ,
+          ∃ φ : Fin ((n : ℕ) + 1) → ℝ → ℝ,
             (∀ j, ContDiff ℝ ∞ (φ j) ∧ Function.Periodic (φ j) (ell N).val⁻¹) ∧
             (∀ x : ℝ, ψ (x : Circle (loopMasterLength (ell N))) = ∑ j, φ j x) ∧
             (∀ j x,
               |deriv (φ j) x| ≤ C * gradWeightOne P.val.2 (1 - P.val.2 + α')
-                (cltK N (ell N)) (ell N).val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j) ∧
+                (cltK N (ell N)) (ell N).val⁻¹ (x - Fin.lastCases 0 marks j) ∧
               |deriv (deriv (φ j)) x| ≤ C * gradWeightTwo P.val.2 (1 - P.val.2 + α')
-                (cltK N (ell N)) (ell N).val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j)) := by
-  obtain ⟨Co, hCo, ho⟩ := compactDecomposition_profile P p hp d.1 d.2.1 d.2.2.1
-    d.2.2.2.1 d.2.2.2.2 α α' hη hB hC₀ hα hα2 hαα' hα' hα'2 ρ hρ
-  obtain ⟨Cf, hCf, hfam⟩ := compactDecomposition_transport_families P p hp d.1 d.2.1 d.2.2.1
-    d.2.2.2.1 d.2.2.2.2 α α' hη hB hC₀ hα hα2 hαα' hα' hα'2 ρ hρ
+                (cltK N (ell N)) (ell N).val⁻¹ (x - Fin.lastCases 0 marks j)) := by
+  obtain ⟨n, marks, D, δ, hD, hδ, hsep, hreplace, _⟩ := regMicro_compact_family_marks
+    P p hp d.1 d.2.1 d.2.2.1 α d.2.2.2.1 d.2.2.2.2 hη hB hC₀ hα hα2
+  have hsepc (c : Scale) (i k : Fin (n : ℕ)) (hik : i ≠ k) :
+      δ ≤ circDist c.val⁻¹ (marks i - marks k) := by
+    have ht := hsep c i k hik
+    rw [dist_coe_eq_circDist_sub (observationLength c).property,
+      show (observationLength c).val = c.val⁻¹ from rfl] at ht
+    exact ht
+  obtain ⟨Co, hCo, ho⟩ := compactDecomposition_profile P p hp d.1 d.2.1 D
+    n marks α α' hη hB hD.le hα hα2 hαα' hα' hα'2 δ hδ hsepc ρ hρ
+  obtain ⟨Cf, hCf, hfam⟩ := compactDecomposition_transport_families P p hp d.1 d.2.1 D
+    n marks α α' hη hB hD.le hα hα2 hαα' hα' hα'2 δ hδ hsepc ρ hρ
   let C := max Co Cf
   have hC : 0 < C := hCo.trans_le (le_max_left _ _)
-  refine ⟨C, hC, fun ell hell hreg N r v f hv h hh hK hKh hh1 ψ hψ htr => ?_⟩
+  refine ⟨n, marks, C, hC, fun ell hell hdata N r v f hv h hh hK hKh hh1 ψ hψ htr => ?_⟩
+  have hreg : ∀ N,
+      PrimitiveRegularity (observationLength (ell N)) d.1 P.val.2 d.2.1
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
+      TransportRegularity P (observationLength (ell N))
+        ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ n marks α D :=
+    fun N => ⟨(hdata N).1, hreplace ell hell hdata (ell N) (hdata N).1⟩
   let a := ell N
   let L := loopMasterLength a
   let ξ := (⟨periodizedProfile p L, periodizedProfileL2 p a⟩ :
@@ -74,22 +88,22 @@ theorem compactDecomposition_optimalScalingTest
   have htransfer (q₀ : {g : Circle L → ℝ // MemLp (fun x => (g x : ℂ)) 2 (arclength L)})
       (hcoef : ∀ k, coeff L ⟨(fun x => (q₀.val x : ℂ)), complexL2Integrable _ _ q₀.property⟩ k =
         transportCoeffs P L f k) {B : ℝ} (hBC : B ≤ C)
-      (hb : ∃ φ : Fin ((d.2.2.2.1 : ℕ) + 1) → ℝ → ℝ,
+      (hb : ∃ φ : Fin ((n : ℕ) + 1) → ℝ → ℝ,
         (∀ j, ContDiff ℝ ∞ (φ j) ∧ Function.Periodic (φ j) a.val⁻¹) ∧
         (∀ x, circleMollify ρ a.val⁻¹ h (fun y : ℝ => q₀.val (y : Circle L)) x = ∑ j, φ j x) ∧
         (∀ j x,
           |deriv (φ j) x| ≤ B * gradWeightOne P.val.2 (1 - P.val.2 + α') (cltK N a)
-            a.val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j) ∧
+            a.val⁻¹ (x - Fin.lastCases 0 marks j) ∧
           |deriv (deriv (φ j)) x| ≤ B * gradWeightTwo P.val.2 (1 - P.val.2 + α') (cltK N a)
-            a.val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j))) :
-      ∃ φ : Fin ((d.2.2.2.1 : ℕ) + 1) → ℝ → ℝ,
+            a.val⁻¹ (x - Fin.lastCases 0 marks j))) :
+      ∃ φ : Fin ((n : ℕ) + 1) → ℝ → ℝ,
         (∀ j, ContDiff ℝ ∞ (φ j) ∧ Function.Periodic (φ j) a.val⁻¹) ∧
         (∀ x : ℝ, ψ (x : Circle L) = ∑ j, φ j x) ∧
         (∀ j x,
           |deriv (φ j) x| ≤ C * gradWeightOne P.val.2 (1 - P.val.2 + α') (cltK N a)
-            a.val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j) ∧
+            a.val⁻¹ (x - Fin.lastCases 0 marks j) ∧
           |deriv (deriv (φ j)) x| ≤ C * gradWeightTwo P.val.2 (1 - P.val.2 + α') (cltK N a)
-            a.val⁻¹ (x - Fin.lastCases 0 d.2.2.2.2 j)) := by
+            a.val⁻¹ (x - Fin.lastCases 0 marks j)) := by
     have heq (x : ℝ) : ψ (x : Circle L) =
         circleMollify ρ a.val⁻¹ h (fun y : ℝ => q₀.val (y : Circle L)) x :=
       errorOne_eq_circleMollify_of_coeff P L hρ hh f q₀.val q₀.property hcoef

@@ -6,17 +6,17 @@ Authors: Jeanne Boursier
 module
 
 public import Riesz1.CLT.ErrorTwoPieces
-public import Riesz1.CLT.ErrorTwoDecomposition
+public import Riesz1.Variance.VarAlPiecesDerivativeCutoffs
 public import Riesz1.Variance.APrioriConclusion
 import all Riesz1.Variance.LoopForce
 
 /-!
 # Variance assembly for pieces of the transport derivative
 
-In the proof of the second error bound in Theorem 3, apply the a-priori estimate directly to
-smooth pieces of the first transport derivative. A periodic primitive
-for each piece is unnecessary. All centers and the number of pieces
-precede the observation scale.
+The transport derivative is a sum of fixed periodic cutoff pieces and
+a regular remainder. Apply the a priori estimate with the singular
+exponent to each cutoff piece and with exponent zero to the remainder.
+The centers, cutoff radius and number of pieces precede the observation scale.
 -/
 
 public section
@@ -26,10 +26,16 @@ open scoped ContDiff ENNReal
 
 namespace Riesz1.Internal
 
-/-- The complete a-priori assertion discharges the earlier input
-without changing its statement. -/
-theorem errorTwoAPrioriInput_of_conclusion (hAP : APrioriConclusion) :
-    ErrorTwoAPrioriInput := hAP
+/-- The a priori maximum power is bounded by the required sum. -/
+theorem errorTwo_cutoff_power {K : ℝ} (hK : 1 ≤ K) (s b ε : ℝ) :
+    K ^ (ε + max (2 * b) s) ≤ K ^ ε * (K ^ s + K ^ (2 * b)) := by
+  rw [Real.rpow_add (by linarith : 0 < K)]
+  apply mul_le_mul_of_nonneg_left _ (Real.rpow_nonneg (by linarith) _)
+  rcases le_total (2 * b) s with h | h
+  · rw [max_eq_right h]
+    exact le_add_of_nonneg_right (Real.rpow_nonneg (by linarith) _)
+  · rw [max_eq_left h]
+    exact le_add_of_nonneg_left (Real.rpow_nonneg (by linarith) _)
 
 /-- A-priori variance for a periodic `C¹` function with a translated
 single-center derivative bound. Integrability is concluded. -/
@@ -44,7 +50,7 @@ theorem errorTwo_fluctuation_piece_of_input (hAP : APrioriConclusion)
           fluctIntegral (fun u => f (u / a.val)) N X.val) (gibbsMeasure P N),
           variance (gibbsMeasure P N) _ hF ≤
             ENNReal.ofReal (C * M ^ 2 * (((N : ℝ) * a.val) ^ ε *
-              ((N : ℝ) * a.val + ((N : ℝ) * a.val) ^ (2 * b)))) := by
+              (((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b)))) := by
   obtain ⟨C, hC, hbound⟩ := hAP P b hb ε hε 1 one_pos c
   refine ⟨C, hC, fun N a hK M hM f hf hp hd => ?_⟩
   have : IsProbabilityMeasure (gibbsMeasure P N) := (modelWellDefined P N).2.2
@@ -74,32 +80,32 @@ theorem errorTwo_fluctuation_piece_of_input (hAP : APrioriConclusion)
   refine ⟨hS.sub (integrable_const m), ?_⟩
   rw [frozenVariance_sub_const hS m]
   apply hSV.trans (ENNReal.ofReal_le_ofReal ?_)
-  exact mul_le_mul_of_nonneg_left (errorTwo_derivative_power_bound hK P.property.2.2.le b ε)
+  exact mul_le_mul_of_nonneg_left (errorTwo_cutoff_power hK P.val.2 b ε)
     (by positivity)
 
-/-- Fixed finite assembly, for pieces of a function rather than periodic
-primitives. This includes empty sums and zero amplitudes. -/
+/-- Sum a finite family of variance bounds with individually chosen exponents.
+Each exponent is nonnegative and bounded by the prescribed singular exponent. -/
 theorem errorTwo_fluctuation_pieces_of_input (hAP : APrioriConclusion)
-    (P : Parameters) (b ε : ℝ) (hb : 0 ≤ b) (hε : 0 < ε)
-    (m : ℕ) (c : Fin m → ℝ) :
+    (P : Parameters) (b ε : ℝ) (hε : 0 < ε)
+    (m : ℕ) (c lam : Fin m → ℝ) (hlam0 : ∀ j, 0 ≤ lam j) (hlamb : ∀ j, lam j ≤ b) :
     ∃ C : ℝ, 0 < C ∧ ∀ (N : ℕ+) (a : Scale), 1 ≤ (N : ℝ) * a.val →
       ∀ (M : ℝ), 0 ≤ M → ∀ φ : Fin m → ℝ → ℝ,
         (∀ j, ContDiff ℝ 1 (φ j)) →
         (∀ j, Function.Periodic (φ j) a.val⁻¹) →
         (∀ j u, |deriv (φ j) u| ≤
-          M * gradWeightTwo P.val.2 b ((N : ℝ) * a.val) a.val⁻¹ (u - c j)) →
+          M * gradWeightTwo P.val.2 (lam j) ((N : ℝ) * a.val) a.val⁻¹ (u - c j)) →
         ∃ hF : Integrable (fun X : Configuration N =>
           fluctIntegral (fun u => ∑ j, φ j (u / a.val)) N X.val) (gibbsMeasure P N),
           variance (gibbsMeasure P N) _ hF ≤
             ENNReal.ofReal (C * M ^ 2 * (((N : ℝ) * a.val) ^ ε *
-              ((N : ℝ) * a.val + ((N : ℝ) * a.val) ^ (2 * b)))) := by
+              (((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b)))) := by
   classical
   choose D hD hbound using fun j : Fin m =>
-    errorTwo_fluctuation_piece_of_input hAP P b ε (c j) hb hε
+    errorTwo_fluctuation_piece_of_input hAP P (lam j) ε (c j) (hlam0 j) hε
   have hDsum : 0 ≤ ∑ j, D j := Finset.sum_nonneg fun j _ => (hD j).le
   refine ⟨1 + (m : ℝ) * ∑ j, D j, by positivity, fun N a hK M hM φ hφ hp hd => ?_⟩
   have : IsProbabilityMeasure (gibbsMeasure P N) := (modelWellDefined P N).2.2
-  let R := ((N : ℝ) * a.val) ^ ε * ((N : ℝ) * a.val + ((N : ℝ) * a.val) ^ (2 * b))
+  let R := ((N : ℝ) * a.val) ^ ε * (((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b))
   have hR : 0 ≤ R := by dsimp [R]; positivity
   let F : Fin m → Configuration N → ℝ := fun j X =>
     fluctIntegral (fun u => φ j (u / a.val)) N X.val
@@ -112,7 +118,15 @@ theorem errorTwo_fluctuation_pieces_of_input (hAP : APrioriConclusion)
   have hV : ∀ j, variance (gibbsMeasure P N) (F j) ((hmem j).integrable one_le_two) ≤
       ENNReal.ofReal (D j * M ^ 2 * R) := by
     intro j
-    exact (hbound j N a hK M hM (φ j) (hφ j) (hp j) (hd j)).choose_spec
+    apply (hbound j N a hK M hM (φ j) (hφ j) (hp j) (hd j)).choose_spec.trans
+      (ENNReal.ofReal_le_ofReal ?_)
+    have hp : ((N : ℝ) * a.val) ^ (2 * lam j) ≤ ((N : ℝ) * a.val) ^ (2 * b) :=
+      Real.rpow_le_rpow_of_exponent_le hK (by linarith [hlamb j])
+    have hp' : ((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * lam j) ≤
+        ((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b) := by linarith
+    exact mul_le_mul_of_nonneg_left
+      (mul_le_mul_of_nonneg_left hp' (Real.rpow_nonneg (by linarith : 0 ≤ (N : ℝ) * a.val) _))
+      (mul_nonneg (hD j).le (sq_nonneg M))
   have he : (fun X : Configuration N =>
       fluctIntegral (fun u => ∑ j, φ j (u / a.val)) N X.val) = fun X => ∑ j, F j X := by
     funext X
@@ -139,13 +153,13 @@ theorem errorTwo_fluctuation_pieces_of_input (hAP : APrioriConclusion)
       dsimp only [R]
       nlinarith [mul_nonneg (sq_nonneg M) hR])
 
-/-- The full derivative variance follows from the regularization
-envelopes and tails, with no mark-separation assumption. The coefficient
-precedes the scale, radius, amplitude and periodic function. -/
+/-- Apply the a priori estimate with the singular exponent near each mark
+and exponent zero on the regular remainder, then sum the variances. -/
 theorem errorTwo_variance_of_envelopes (hAP : APrioriConclusion)
     (P : Parameters) (n : ℕ) (marks : Fin n → ℝ)
-    (b ε : ℝ) (hb : 0 ≤ b) (hε : 0 < ε) :
+    (δ : ℝ) (hδ : 0 < δ) (b ε : ℝ) (hb : 0 ≤ b) (hε : 0 < ε) :
     ∃ C : ℝ, 0 < C ∧ ∀ (N : ℕ+) (a : Scale), 1 ≤ (N : ℝ) * a.val →
+      (∀ i k, i ≠ k → δ ≤ circDist a.val⁻¹ (marks i - marks k)) →
       ∀ (h A : ℝ), 0 < h → ((N : ℝ) * a.val)⁻¹ ≤ h → 0 ≤ A →
       ∀ F : ℝ → ℝ, ContDiff ℝ ∞ F → Function.Periodic F a.val⁻¹ →
       (∀ x, |F x| ≤ A * (1 + ∑ j,
@@ -159,14 +173,26 @@ theorem errorTwo_variance_of_envelopes (hAP : APrioriConclusion)
         fluctIntegral (fun u => F (u / a.val)) N X.val) (gibbsMeasure P N),
         variance (gibbsMeasure P N) _ hF ≤
           ENNReal.ofReal (C * A ^ 2 * (((N : ℝ) * a.val) ^ ε *
-            ((N : ℝ) * a.val + ((N : ℝ) * a.val) ^ (2 * b)))) := by
-  obtain ⟨D, hD, hsplit⟩ := errorTwo_decomposition n marks P.val.2 b
-    (by linarith [P.property.2.2]) hb
-  obtain ⟨V, hV, hvariance⟩ := errorTwo_fluctuation_pieces_of_input hAP P b ε hb hε
-    (n + 1) (Fin.lastCases 0 marks)
-  refine ⟨V * D ^ 2, by positivity, fun N a hK h A hh hhK hA F hF hp hfv hfd ht => ?_⟩
-  obtain ⟨φ, hφ, hsum, hd⟩ := hsplit ⟨a.val⁻¹, inv_pos.mpr a.property.1⟩ ⟨h, hh⟩
-    ((N : ℝ) * a.val) A hK hhK hA F hF hp hfv hfd ht
+            (((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b)))) := by
+  obtain ⟨D, hD, hsplit⟩ := varAlPieces_derivative_cutoffs n marks
+    (by linarith [P.property.2.2] : P.val.2 < 3) hb hδ
+  let lam : Fin (n + 1) → ℝ := Fin.lastCases 0 (fun _ => b)
+  have hlam0 (j : Fin (n + 1)) : 0 ≤ lam j := by
+    refine Fin.lastCases ?_ (fun _ => ?_) j <;>
+      simp only [lam, Fin.lastCases_last, Fin.lastCases_castSucc]
+    · exact le_rfl
+    · exact hb
+  have hlamb (j : Fin (n + 1)) : lam j ≤ b := by
+    refine Fin.lastCases ?_ (fun _ => ?_) j <;>
+      simp only [lam, Fin.lastCases_last, Fin.lastCases_castSucc]
+    · exact hb
+    · exact le_rfl
+  obtain ⟨V, hV, hvariance⟩ := errorTwo_fluctuation_pieces_of_input hAP P b ε hε
+    (n + 1) (Fin.lastCases 0 marks) lam hlam0 hlamb
+  refine ⟨V * D ^ 2, by positivity, fun N a hK hsep h A hh hhK hA F hF hp hfv hfd ht => ?_⟩
+  obtain ⟨φ, hφ, hsum, hd⟩ := hsplit a.val⁻¹ ((N : ℝ) * a.val) h A
+    ((one_le_inv₀ a.property.1).mpr a.property.2) hsep hK hhK hA F hF hp hfv hfd
+    (fun x hx => (ht x (by linarith)).2)
   obtain ⟨hi, hbnd⟩ := hvariance N a hK (D * A) (mul_nonneg hD.le hA) φ
     (fun j => (hφ j).1.of_le (by simp)) (fun j => (hφ j).2) hd
   have he : (fun u => ∑ j, φ j (u / a.val)) = fun u => F (u / a.val) :=
@@ -175,7 +201,7 @@ theorem errorTwo_variance_of_envelopes (hAP : APrioriConclusion)
       fluctIntegral (fun u => ∑ j, φ j (u / a.val)) N X.val) (gibbsMeasure P N),
       variance (gibbsMeasure P N) _ hi ≤ ENNReal.ofReal
         (V * (D * A) ^ 2 * (((N : ℝ) * a.val) ^ ε *
-          ((N : ℝ) * a.val + ((N : ℝ) * a.val) ^ (2 * b)))) := ⟨hi, hbnd⟩
+          (((N : ℝ) * a.val) ^ P.val.2 + ((N : ℝ) * a.val) ^ (2 * b)))) := ⟨hi, hbnd⟩
   rw [he] at hstatement
   obtain ⟨hi', hbnd'⟩ := hstatement
   refine ⟨hi', hbnd'.trans (ENNReal.ofReal_le_ofReal (le_of_eq ?_))⟩

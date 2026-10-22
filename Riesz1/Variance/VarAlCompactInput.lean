@@ -56,18 +56,18 @@ theorem varAlCompact_optimalScalingTest
             (variance (gibbsMeasure P N) _ hi).toReal ≤
               C * cltK N (ell N) ^ (ε + max 1 (2 * (1 - P.val.2 + α))) := by
   obtain ⟨α', hα', hα'2, hαα', hpower⟩ := varAlFinal_interior_exponent P.property.2.2 hα hα2
-  obtain ⟨E, hE, hpieces⟩ := compactDecomposition_optimalScalingTest P p hp α α' d
+  obtain ⟨n, marks, E, hE, hpieces⟩ := compactDecomposition_optimalScalingTest P p hp α α' d
     hα hα2 hαα' hα' hα'2 hη hB hC₀ ρ hρ
   obtain ⟨C, hC, hv⟩ := varAlFinal_finite_pieces hBE hPL P
-    ((d.2.2.2.1 : ℕ) + 1) hα'.le hα'2 hE hε
+    ((n : ℕ) + 1) hα'.le hα'2 hE hε
   refine ⟨C, hC, fun ell hell hreg N r v f ht h hh hK hKh hh1 ψ hψ htr => ?_⟩
   obtain ⟨φ, hφ, hsum, henv⟩ := hpieces ell hell hreg N r v f ht h hh hK hKh hh1 ψ hψ htr
-  have htrans (j : Fin ((d.2.2.2.1 : ℕ) + 1)) : ∃ a : ℝ,
+  have htrans (j : Fin ((n : ℕ) + 1)) : ∃ a : ℝ,
       (∀ x, |deriv (fun t => φ j (t + a)) x| ≤ E *
         gradWeightOne P.val.2 (1 - P.val.2 + α') (cltK N (ell N)) (ell N).val⁻¹ x) ∧
       (∀ x, |deriv (deriv (fun t => φ j (t + a))) x| ≤ E *
         gradWeightTwo P.val.2 (1 - P.val.2 + α') (cltK N (ell N)) (ell N).val⁻¹ x) := by
-    let a : ℝ := Fin.lastCases 0 d.2.2.2.2 j
+    let a : ℝ := Fin.lastCases 0 marks j
     refine ⟨a, fun x => ?_, fun x => ?_⟩
     · rw [deriv_comp_add_const]
       simpa only [a, add_sub_cancel_right] using (henv j (x + a)).1

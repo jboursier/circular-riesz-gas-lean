@@ -41,23 +41,10 @@ theorem integrable_rieszRepresentative_complex (s : RieszExponent) :
     Integrable (fun x : UnitAddCircle => (rieszRepresentative s x : ℂ)) :=
   (integrable_rieszRepresentative s).ofReal
 
-/-- The zero Fourier coefficient of the Riesz kernel vanishes. -/
-theorem fourierCoeff_rieszRepresentative_zero (s : RieszExponent) :
-    fourierCoeff (fun x : UnitAddCircle => (rieszRepresentative s x : ℂ)) 0 = 0 := by
-  simp only [fourierCoeff, neg_zero, fourier_zero, one_smul]
-  rw [show (AddCircle.haarAddCircle : Measure UnitAddCircle) = volume by
-    simpa using (AddCircle.volume_eq_smul_haarAddCircle (T := (1 : ℝ))).symm]
-  rw [integral_complex_ofReal, integral_rieszRepresentative, ofReal_zero]
-
 /-- The representative is even on the circle, including the collision value. -/
 theorem rieszRepresentative_neg (s : RieszExponent) (x : UnitAddCircle) :
     rieszRepresentative s (-x) = rieszRepresentative s x := by
   simp only [rieszRepresentative, HurwitzZeta.hurwitzZetaEven_neg]
-
-/-- Real-valuedness removes the real-part operation in the definition. -/
-theorem rieszRepresentative_complex_eq (s : RieszExponent) (x : UnitAddCircle) :
-    (rieszRepresentative s x : ℂ) = 2 * HurwitzZeta.hurwitzZetaEven x (s.val : ℂ) := by
-  apply Complex.ext <;> simp [rieszRepresentative, hurwitzZetaEven_ofReal_im]
 
 /-- The positive and negative Fourier modes coincide. -/
 theorem fourierCoeff_rieszRepresentative_neg (s : RieszExponent) (k : ℤ) :

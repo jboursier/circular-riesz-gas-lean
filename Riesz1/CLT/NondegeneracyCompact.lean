@@ -12,9 +12,11 @@ import all Riesz1.Variance.LoopMaster
 /-!
 # Compact-profile variance bounds
 
-The upper bound in the compact alternative of the nondegeneracy step in the proof of Theorem 3.
-The regularized variance is `cltVariance` applied to `cltScaledLift`, with the periodized profile
-as input.
+The two variance bounds for the compact alternative of the nondegeneracy step in the proof of
+Theorem 3. Near scale zero, the second variance estimate gives a lower bound for the unsmoothed
+variance. For every smoothing radius, the regularized variance is bounded above, because the
+Fourier multipliers of the mollifier have modulus at most one. The regularized variance is
+`cltVariance` applied to `cltScaledLift`, with the periodized profile as input.
 -/
 
 public section
@@ -101,8 +103,10 @@ lemma nondegeneracy_compact_upper_of_admissible (P : Parameters) (p : Profile)
   exact (Real.sqrt_le_sqrt
     ((ENNReal.toReal_mono hcircle.2.1.ne hle).trans hbound)).trans (by dsimp [C]; linarith)
 
-/-- The positive line limit gives a lower bound for the unsmoothed
-variance on a whole interval of sufficiently small observation scales. -/
+/-- The second variance estimate bounds the difference between the unsmoothed variance and the
+line variance by a constant times a power of the scale. The line variance is positive for a
+nonzero profile. Hence the unsmoothed variance has a positive lower bound on every scale below
+an explicit threshold. -/
 lemma nondegeneracy_compact_small_scales_of_admissible (P : Parameters) (p : Profile)
     (hp : CompactProfile p) (ell : Scales) (α : ℝ) (d : TestData)
     (h : Admissible P p ell α d)
@@ -111,23 +115,26 @@ lemma nondegeneracy_compact_small_scales_of_admissible (P : Parameters) (p : Pro
       circleVariance P p a < ⊤ ∧ c ≤ Real.sqrt (circleVariance P p a).toReal := by
   let f := (zeroExtensionL2 p).toLp _
   have hf : RepresentsZeroExtension p f := (zeroExtensionL2 p).coeFn_toLp
-  obtain ⟨_, hfin, _, _, hb⟩ := admissible_compact_variance P p hp ell α d h f hf
+  obtain ⟨_, hfin, C, hC, hb⟩ := admissible_compact_variance P p hp ell α d h f hf
   have hnonzero : lineVariance P f ≠ 0 :=
     fun he => hz ((clt_nondegeneracy_compact_zero P p f hf).mp he)
   have hv : 0 < (lineVariance P f).toReal := ENNReal.toReal_pos hnonzero hfin.ne
-  have hlim := admissible_compact_variance_tendsto P p hp ell α d h f hf
-    (fun a : Scale => a) (l := comap (fun a : Scale => a.val) (𝓝 (0 : ℝ))) tendsto_comap
-  have hevent := hlim.eventually (lt_mem_nhds (show
-    (lineVariance P f).toReal / 2 < (lineVariance P f).toReal by linarith))
-  obtain ⟨U, hU, hsub⟩ := mem_comap.mp hevent
-  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.mp hU
-  refine ⟨Real.sqrt ((lineVariance P f).toReal / 2), ε,
-    Real.sqrt_pos.mpr (half_pos hv), hε, fun a ha => ⟨(hb a).2.1, ?_⟩⟩
+  set σ := (lineVariance P f).toReal
+  have hC0 : C ≠ 0 := hC.ne'
+  have hthr : 0 < σ / (2 * C) := div_pos hv (by linarith)
+  refine ⟨Real.sqrt (σ / 2), (σ / (2 * C)) ^ (2 - P.val.2)⁻¹,
+    Real.sqrt_pos.mpr (half_pos hv), Real.rpow_pos_of_pos hthr _, fun a ha => ⟨(hb a).2.1, ?_⟩⟩
   apply Real.sqrt_le_sqrt
-  apply le_of_lt
-  apply hsub
-  apply hball
-  simpa only [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_pos a.property.1] using ha
+  have hs : (0 : ℝ) < 2 - P.val.2 := by linarith [P.property.2.2]
+  have hpow : a.val ^ (2 - P.val.2) ≤ σ / (2 * C) :=
+    calc a.val ^ (2 - P.val.2) ≤ ((σ / (2 * C)) ^ (2 - P.val.2)⁻¹) ^ (2 - P.val.2) :=
+          Real.rpow_le_rpow a.property.1.le ha.le hs.le
+      _ = σ / (2 * C) := Real.rpow_inv_rpow hthr.le hs.ne'
+  have hrate : C * a.val ^ (2 - P.val.2) ≤ σ / 2 :=
+    calc C * a.val ^ (2 - P.val.2) ≤ C * (σ / (2 * C)) :=
+          mul_le_mul_of_nonneg_left hpow hC.le
+      _ = σ / 2 := by field_simp
+  linarith [(abs_le.mp (hb a).2.2).1]
 
 end Internal
 

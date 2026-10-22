@@ -63,8 +63,9 @@ theorem errorTwo_macro_derivative_variance (hAP : APrioriConclusion)
   have hA : 0 < A := by dsimp [A]; positivity
   have h₁ : C₁ ≤ A := by dsimp [A]; linarith
   have h₂ : C₂ ≤ A := by dsimp [A]; linarith
+  obtain ⟨δmark, hδmark, hsepmark⟩ := exists_pos_le_dist_of_injective hreg.1
   obtain ⟨V, hV, hvariance⟩ := errorTwo_variance_of_envelopes hAP P (d.2.2.2.1 : ℕ)
-    d.2.2.2.2 b ε hb hε
+    d.2.2.2.2 δmark hδmark b ε hb hε
   refine ⟨V * A ^ 2, by positivity, fun N a ha hK ψ hψ htr => ?_⟩
   let Ψ := loopMasterProfile a ψ hψ
   have hΨ : ContDiff ℝ ∞ Ψ.val := hψ
@@ -73,6 +74,11 @@ theorem errorTwo_macro_derivative_variance (hAP : APrioriConclusion)
   have hh1 := cltDelta_le_one P N a hK
   have hL : (loopMasterLength a).val = 1 := by change a.val⁻¹ = 1; rw [ha, inv_one]
   have hL' : (observationLength a).val = 1 := hL
+  have hsepc (i k : Fin (d.2.2.2.1 : ℕ)) (hik : i ≠ k) :
+      δmark ≤ circDist a.val⁻¹ (d.2.2.2.2 i - d.2.2.2.2 k) := by
+    have ht := hsepmark i k hik
+    rw [dist_coe_eq_circDist_sub unitLength.property, show unitLength.val = 1 from rfl] at ht
+    simpa only [ha, inv_one] using ht
   obtain ⟨ψ0, hψ0pt, _, hψ0coef⟩ := exists_transfer_of_val_one
     (loopMasterLength a) hL ⟨ψ₁, hm₁⟩
   have hf0 (k : ℤ) : coeff (loopMasterLength a)
@@ -115,10 +121,10 @@ theorem errorTwo_macro_derivative_variance (hAP : APrioriConclusion)
     change circDist a.val⁻¹ x ≤ a.val⁻¹ / 2 at hh'
     rw [ha, inv_one] at hh' hx
     linarith
-  obtain ⟨hi, hbnd⟩ := hvariance N a hK (cltDelta P N a) A hh
+  obtain ⟨hi, hbnd⟩ := hvariance N a hK hsepc (cltDelta P N a) A hh
     (cltDelta_ge_inv P N a hK) hA.le (deriv Ψ.val)
     (contDiff_infty_iff_deriv.mp hΨ).2 (Riesz1.periodic_deriv hΨp) hval hder htail
-  refine ⟨hi, hbnd.trans (ENNReal.ofReal_le_ofReal (le_of_eq ?_))⟩
-  ring
+  refine ⟨hi, hbnd.trans (ENNReal.ofReal_le_ofReal ?_)⟩
+  exact errorTwo_cutoff_rate hK P.property.2.2.le (mul_nonneg hV.le (sq_nonneg A))
 
 end Riesz1.Internal

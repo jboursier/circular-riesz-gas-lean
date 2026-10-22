@@ -23,7 +23,7 @@ mean-zero distributions are therefore stated coefficientwise. The target `δ_0 -
 
 public section
 
-open MeasureTheory Complex Set
+open MeasureTheory Complex Set Filter Topology
 
 namespace Riesz1
 
@@ -59,24 +59,41 @@ theorem fundamental_equation (s : RieszExponent) (k : ℤ) :
 
 /-- Uniqueness of the fundamental solution: every coefficient sequence `a` with mean zero and
 satisfying the distributional equation `(-Δ)^{(1-s)/2} a = c_s (δ_0 - 1)` is the coefficient
-sequence of `g_s`. The equation fixes `a k` for each `k ≠ 0`, and mean zero fixes `a 0`. -/
+sequence of `g_s`. At each nonzero frequency the multiplier `|2πk|^{1-s}` is nonzero, so the
+equation determines `a_k`, and the coefficient of `g_s` is `c_s (2π|k|)^{s-1}`. -/
 theorem fundamental_unique (s : RieszExponent) (a : ℤ → ℂ) (ha0 : a 0 = 0)
     (ha : ∀ k : ℤ, fractionalLaplacianCoeffs unitLength ((1 - s.val) / 2) a k =
       (rieszConstant s : ℂ) * ((1 : ℂ) - if k = 0 then 1 else 0)) :
     a = fun j : ℤ => fourierCoeff (fun x : UnitAddCircle => (rieszRepresentative s x : ℂ)) j := by
   funext k
+  rw [fourierCoeff_rieszRepresentative]
   by_cases hk : k = 0
-  · subst hk
-    show a 0 = fourierCoeff (fun x : UnitAddCircle => (rieszRepresentative s x : ℂ)) 0
-    rw [ha0, fourierCoeff_rieszRepresentative_zero]
+  · simp [hk, ha0]
   · have hk' : (k : ℝ) ≠ 0 := by exact_mod_cast hk
-    have hq : (|2 * Real.pi * (k : ℝ)| ^ (2 * ((1 - s.val) / 2)) : ℝ) ≠ 0 :=
-      (Real.rpow_pos_of_pos (abs_pos.mpr (mul_ne_zero (by positivity) hk')) _).ne'
-    have h1 := ha k
-    simp only [fractionalLaplacianCoeffs_unit, hk, ite_false] at h1
-    have h2 := fundamental_equation s k
-    simp only [fractionalLaplacianCoeffs_unit, hk, ite_false] at h2
-    exact mul_left_cancel₀ (Complex.ofReal_ne_zero.mpr hq) (h1.trans h2.symm)
+    have hpos : 0 < 2 * Real.pi * |(k : ℝ)| := mul_pos (by positivity) (abs_pos.2 hk')
+    have habs : |2 * Real.pi * (k : ℝ)| = 2 * Real.pi * |(k : ℝ)| := by
+      rw [abs_mul, abs_of_pos (by positivity : (0 : ℝ) < 2 * Real.pi)]
+    have hprod : |2 * Real.pi * (k : ℝ)| ^ (1 - s.val) *
+        (2 * Real.pi * |(k : ℝ)|) ^ (s.val - 1) = 1 := by
+      rw [habs, ← Real.rpow_add hpos, show (1 - s.val) + (s.val - 1) = (0 : ℝ) by ring,
+        Real.rpow_zero]
+    have hmul : |2 * Real.pi * (k : ℝ)| ^ (2 * ((1 - s.val) / 2)) =
+        |2 * Real.pi * (k : ℝ)| ^ (1 - s.val) := by
+      congr 1
+      ring
+    have hm := ha k
+    simp only [fractionalLaplacianCoeffs_unit, hk, ite_false, sub_zero, mul_one] at hm
+    have hm' : ((|2 * Real.pi * (k : ℝ)| ^ (1 - s.val) : ℝ) : ℂ) * a k =
+        (rieszConstant s : ℂ) := by
+      rw [← hmul]
+      exact hm
+    have hprodC : ((|2 * Real.pi * (k : ℝ)| ^ (1 - s.val) : ℝ) : ℂ) *
+        ((((2 * Real.pi * |(k : ℝ)|) ^ (s.val - 1)) : ℝ) : ℂ) = 1 := by
+      exact_mod_cast hprod
+    simp only [hk, ite_false]
+    rw [Complex.ofReal_mul]
+    linear_combination ((((2 * Real.pi * |(k : ℝ)|) ^ (s.val - 1)) : ℝ) : ℂ) * hm' -
+      a k * hprodC
 
 /-- The Hurwitz zeta function at `x ∈ (0, 1]` is Mathlib's function on the circle: the shift is
 empty. -/

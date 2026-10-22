@@ -10,18 +10,12 @@ public import Riesz1.Variance.VarAlPiecesEnvelopeMacro
 public import Riesz1.Variance.VarAlPiecesLoopVariance
 
 /-!
-# Reduction to one singularity: macroscopic and compact cases
+# Reduction to one singularity by fixed cutoffs
 
-Proposition 5.9, macroscopic and compact cases. The regularized transport `ψ_h` is a sum of
-a fixed number `m` of smooth periodic pieces, with the derivative envelopes of `gradWeightOne` and
-`gradWeightTwo` after translating each singular piece to its mark. The loop variance of `ψ_h` is at most
-`m` times the sum of the loop variances of the pieces, and translating one piece does not change its loop
-variance.
-
-The decomposition and the envelopes come from `varAl_envelope_macro` and `varAl_envelope_compact`
-(`VarAlPiecesEnvelope*.lean`). The variance assertions come from `varAl_pieces_loop_variance`
-(`VarAlPiecesLoopVariance.lean`), applied to the same pieces. The loop variance part takes `External.PrekopaLeindler`
-as an explicit hypothesis.
+The regularized transport is a sum of smooth periodic cutoff pieces
+and a regular remainder. The compact constants precede the scale sequence.
+Linearity, rotation invariance and the finite variance inequality reduce
+the loop estimate to the translated pieces.
 -/
 
 @[expose] public section
@@ -90,17 +84,18 @@ theorem varAl_pieces_macro (P : Parameters) (hPL : External.PrekopaLeindler)
 /-- Proposition 5.9, compact case (scale sequence `ℓ_N → 0`, `K = N ℓ_N`, observation length
 `ℓ_N⁻¹`): decomposition, derivative envelopes and loop variance of the regularized transport. -/
 theorem varAl_pieces_compact (P : Parameters) (hPL : External.PrekopaLeindler)
-    (p : Profile) (hp : CompactProfile p) (η B C₀ : ℝ) (n : ℕ+) (marks : Fin (n : ℕ) → ℝ) (α : ℝ)
-    (hη : 0 < η) (hB : 0 < B) (hC₀ : 0 < C₀) (hα0 : P.val.2 - 1 < α) (hα1 : α < P.val.2 / 2)
-    (ell : Scales)
-    (hell : Filter.Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) Filter.atTop (nhds 0))
-    (hreg : ∀ N : ℕ+,
+    (p : Profile) (hp : CompactProfile p) (η B C₀ : ℝ) (n : ℕ+) (marks : Fin (n : ℕ) → ℝ) (α α' : ℝ)
+    (hη : 0 < η) (hB : 0 ≤ B) (hC₀ : 0 ≤ C₀) (hα0 : P.val.2 - 1 ≤ α) (hα1 : α < P.val.2 / 2)
+    (hαα' : α ≤ α') (hα'0 : P.val.2 - 1 < α') (hα'1 : α' < P.val.2 / 2)
+    (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
+    ∃ (m : ℕ) (C : ℝ), 0 < C ∧ ∀ ell : Scales,
+      Filter.Tendsto (fun k : ℕ => (ell ⟨k + 1, Nat.succ_pos k⟩).val) Filter.atTop (nhds 0) →
+      (∀ N : ℕ+,
       PrimitiveRegularity (observationLength (ell N)) η P.val.2 B
           ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ ∧
         TransportRegularity P (observationLength (ell N))
-          ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ n marks α C₀)
-    (ρ : ℝ → ℝ) (hρ : IsMollifier ρ) :
-    ∃ (m : ℕ) (C : ℝ), 0 < C ∧ ∀ (N : ℕ+) (h : ℝ),
+          ⟨periodizedProfile p (observationLength (ell N)), periodizedProfileL2 p (ell N)⟩ n marks α C₀) →
+      ∀ (N : ℕ+) (h : ℝ),
       1 ≤ (N : ℝ) * (ell N).val → ((N : ℝ) * (ell N).val)⁻¹ ≤ h → h ≤ 1 →
       ∀ ψ : {g : Circle (observationLength (ell N)) → ℝ //
           MemLp (fun x => (g x : ℂ)) 2 (arclength (observationLength (ell N)))},
@@ -118,12 +113,12 @@ theorem varAl_pieces_compact (P : Parameters) (hPL : External.PrekopaLeindler)
               (∀ x : ℝ, |deriv (fun t => φ j (t + a)) x| ≤
                   C * (if circDist (observationLength (ell N)).val x < 1 then
                     max (circDist (observationLength (ell N)).val x)
-                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 - P.val.2 + α))
+                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 - P.val.2 + α'))
                     else circDist (observationLength (ell N)).val x ^ (P.val.2 - 2))) ∧
               (∀ x : ℝ, |deriv (deriv (fun t => φ j (t + a))) x| ≤
                   C * (if circDist (observationLength (ell N)).val x < 1 then
                     max (circDist (observationLength (ell N)).val x)
-                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 + (1 - P.val.2 + α)))
+                      ((N : ℝ) * (ell N).val)⁻¹ ^ (-(1 + (1 - P.val.2 + α')))
                     else circDist (observationLength (ell N)).val x ^ (P.val.2 - 3)))) ∧
           (∃ h1 : Integrable (fun X : Configuration N => loopFunctional P.val.2 (N : ℕ)
                 (loopScaleField (ell N).val (fun x : ℝ => circleMollify ρ (observationLength (ell N)).val h
@@ -141,9 +136,10 @@ theorem varAl_pieces_compact (P : Parameters) (hPL : External.PrekopaLeindler)
                 variance (gibbsMeasure P N) _ h1 = variance (gibbsMeasure P N) _ h2) := by
   classical
   obtain ⟨m, C, hC, hEnv⟩ :=
-    varAl_envelope_compact P p hp η B C₀ n marks α hη hB hC₀ hα0 hα1 ell hell hreg ρ hρ
-  refine ⟨m, C, hC, fun N h hN1 hN2 hh ψ hcoef hcont => ?_⟩
-  obtain ⟨φ, hφp, hφsum, hφd⟩ := hEnv N h hN1 hN2 hh ψ hcoef hcont
+    varAl_envelope_compact_uniform P p hp η B C₀ n marks α α' hη hB hC₀ hα0 hα1
+      hαα' hα'0 hα'1 ρ hρ
+  refine ⟨m, C, hC, fun ell hell hreg N h hN1 hN2 hh ψ hcoef hcont => ?_⟩
+  obtain ⟨φ, hφp, hφsum, hφd⟩ := hEnv ell hell hreg N h hN1 hN2 hh ψ hcoef hcont
   have hℓ0 : (0 : ℝ) < (ell N).val := (ell N).property.1
   have hℓ1 : (ell N).val ≤ 1 := (ell N).property.2
   have hper : ∀ j, Function.Periodic (φ j) (ell N).val⁻¹ := fun j => (hφp j).2.1
