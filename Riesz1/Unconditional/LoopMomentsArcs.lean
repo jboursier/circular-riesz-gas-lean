@@ -11,7 +11,7 @@ public import Riesz1.Unconditional.LoopMomentsArcsNull
 /-!
 # Moments of counts and discrepancies on arcs of every endpoint type
 
-The moment bounds of Lemma 5.8, for every deterministic arc `J` of length `r ≤ N`: the open,
+The moment bounds of Lemma B.2, for every deterministic arc `J` of length `r ≤ N`: the open,
 closed and half-open arcs alike. The theorem `Riesz1.auxiliary_Loop_moments` covers open arcs
 `microArc N a r` only, and this file extends it to every `J` with `IsMicroArc N r J`.
 
@@ -62,7 +62,7 @@ theorem arcLoopDiscrepancy_eq_of_agree {N : ℕ+} {J : Set (AddCircle (N : ℝ))
   rw [hvol, arcLoopCount_eq_of_agree h]
   rfl
 
-/-- The moment bounds of Lemma 5.8, for every deterministic arc `J` of length `r`, with the
+/-- The moment bounds of Lemma B.2, for every deterministic arc `J` of length `r`, with the
 externals `hBE` and `hPL` as hypotheses. The four conclusions are those of the theorem
 `Riesz1.auxiliary_Loop_moments`, with the open arc `microArc N a r` replaced by `J`:
 

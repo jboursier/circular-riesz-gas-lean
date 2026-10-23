@@ -13,7 +13,7 @@ public import Riesz1.Frozen.ArcCount
 # The rigidity conclusion as a hypothesis
 
 The rigidity conclusion of Theorem 1, used conditionally by the loop moment
-estimates of the moments and arcs parts of Lemma 5.8.
+estimates of the moments and arcs parts of Lemma B.2.
 
 The statement `Riesz1.almost_optimal_rigidity` gives this conclusion. Results that use it take
 it as an explicit hypothesis `Riesz1.Internal.RigidityConclusion`, whose body is the second

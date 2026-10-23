@@ -10,7 +10,7 @@ public import Riesz1.ToMathlib.LintegralPowerTail
 /-!
 # The pair term of the small-region estimate
 
-The arcs part of Lemma 5.8, small region `u + v < 1` of the cell estimate. For two
+The arcs part of Lemma B.2, small region `u + v < 1` of the cell estimate. For two
 real lifts `ℓ₁ < ℓ₂` of microscopic particles, the indicator product
 
 `1[ℓ₁ < t < ℓ₂] 1[t - ℓ₁ < u] 1[ℓ₂ - t < v] 1[u + v < 1] (u + v)^{-s-3}`

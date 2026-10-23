@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsLambda
 /-!
 # Measurability of the arc discrepancies and of `Λ`
 
-Preparation for the `L^p` bound of the arcs part of Lemma 5.8.
+Preparation for the `L^p` bound of the arcs part of Lemma B.2.
 The `L^p` norm of a function of the configuration is defined only for strongly measurable
 functions, so the cell estimate needs the joint measurability of `Λ` in the configuration and
 the time. This file proves

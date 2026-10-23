@@ -13,7 +13,7 @@ public import Riesz1.ToMathlib.Moments.Decay
 /-!
 # Block deviations from the lattice
 
-The moments part of Lemma 5.8, the last claim: for `1 ≤ k ≤ N/2`,
+The moments part of Lemma B.2, the last claim: for `1 ≤ k ≤ N/2`,
 `‖S_{i,k} - k‖_{L^p} ≤ C k^{s/2+δ}`, where `S_{i,k} = N (x_{i+k} - x_i)` and `δ` is below the
 rigidity threshold.
 
@@ -35,7 +35,7 @@ namespace Riesz1
 
 namespace Internal
 
-/-- **Block deviations**, the moments part of Lemma 5.8 (the last claim). Conditionally
+/-- **Block deviations**, the moments part of Lemma B.2 (the last claim). Conditionally
 on the rigidity conclusion at `beta, s`: there is a threshold `eps0 > 0` such that for every
 `0 < δ < min(s/2, eps0)` and every `p ≥ 1` there is `C > 0`, depending only on `beta, s, δ, p`,
 with `‖S_{i,k} - k‖_{L^p} ≤ C k^{s/2+δ}` for every `N ≥ 2`, label `i` and `1 ≤ k ≤ N/2`. -/

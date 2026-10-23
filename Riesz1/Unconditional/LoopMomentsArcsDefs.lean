@@ -10,7 +10,7 @@ public import Riesz1.Auxiliary.LoopMomentsDefs
 /-!
 # Arcs of every endpoint type in `N𝕋`
 
-The moment bounds of Lemma 5.8 quantify over every deterministic arc `J` of length `r`. The counts
+The moment bounds of Lemma B.2 quantify over every deterministic arc `J` of length `r`. The counts
 `loopCount` and discrepancies `loopDiscrepancy` are defined for open arcs `microArc N a r` only.
 This file defines
 

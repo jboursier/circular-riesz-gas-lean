@@ -10,7 +10,7 @@ public import Riesz1.Auxiliary.LoopArcsLpLarge
 /-!
 # The atom of the cell estimate
 
-The arcs part of Lemma 5.8, atomic term `g_N''(N/2) ∫_0^{N/2} A_t(u) B_t(N/2 - u) du`.
+The arcs part of Lemma B.2, atomic term `g_N''(N/2) ∫_0^{N/2} A_t(u) B_t(N/2 - u) du`.
 The `L^p` norm of the atom over the configuration is bounded uniformly in `N` and the cell: the
 Hölder inequality over the parameter `(t, u) ∈ (m, m+1] × (0, N/2]` gives a factor `R^p` with
 `R = N/2`, which the factor `|g_N''(R)|^p ≤ C^p R^{-p(s+2)}` absorbs up to `R^{p(2δ-1)} ≤ 1`.

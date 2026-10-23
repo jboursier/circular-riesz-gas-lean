@@ -12,8 +12,8 @@ public import Riesz1.Auxiliary.LoopArcsLpMeasure
 /-!
 # Discrepancy moments of the arc counts from the rigidity bundle
 
-The moments part of Lemma 5.8, the discrepancy clause, in the form used by the cell
-estimate of the arcs part of Lemma 5.8: for every `p ≥ 1` there are `δ ∈ (0, 1/4)` and `M ≥ 0`
+The moments part of Lemma B.2, the discrepancy clause, in the form used by the cell
+estimate of the arcs part of Lemma B.2: for every `p ≥ 1` there are `δ ∈ (0, 1/4)` and `M ≥ 0`
 such that, for every `N ≥ 2`, every arc endpoint `a` and every arclength `0 < u ≤ N/2`,
 
 `∫ |loopCount(a, u) - u|^{2p} dμ_N ≤ (M (1 + u)^{s/2+δ})^{2p}`.

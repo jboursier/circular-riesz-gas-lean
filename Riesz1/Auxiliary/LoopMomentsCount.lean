@@ -16,7 +16,7 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Periodic
 /-!
 # Count moments of microscopic arcs
 
-The moments part of Lemma 5.8, the claim `‖M_J‖_{L^p} ≤ C (1 + r)` for an arc `J` of
+The moments part of Lemma B.2, the claim `‖M_J‖_{L^p} ≤ C (1 + r)` for an arc `J` of
 microscopic length `r ≤ N`.
 
 The pointwise bound `(M_J - 1)_+^{q+1} ≤ r^q ∑_{i ∈ J} y_i^{-q}` is `loopCount_pow_le_sum`.
@@ -206,7 +206,7 @@ theorem measurable_loopCount (a r : ℝ) :
   exact Measurable.ite (measurable_loopPos i (measurableSet_microArc N a r)) measurable_const
     measurable_const
 
-/-- **Count moments**, the moments part of Lemma 5.8 (the claim `‖M_J‖_{L^p} ≤ C(1+r)`).
+/-- **Count moments**, the moments part of Lemma B.2 (the claim `‖M_J‖_{L^p} ≤ C(1+r)`).
 For every `p ≥ 1` there is `C > 0`, depending only on `β, s, p`, such that every `N ≥ 2` and
 every arc of microscopic length `0 < r ≤ N` satisfy `‖M_J‖_{L^p} ≤ C (1 + r)`. -/
 theorem loopCount_eLpNorm (P : Parameters) {p : ℝ} (_hp : 1 ≤ p) :

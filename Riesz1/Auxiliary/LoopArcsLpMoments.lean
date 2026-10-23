@@ -13,7 +13,7 @@ public import Riesz1.ToMathlib.LintegralWeightedHolder
 /-!
 # Lower `L^q` moments and products
 
-Tools for the `L^p` bound of the arcs part of Lemma 5.8:
+Tools for the `L^p` bound of the arcs part of Lemma B.2:
 
 * `lintegral_enorm_rpow_le_of_eLpNorm`: an `eLpNorm` bound at exponent `q` gives the bound
   `∫⁻ ‖f‖ₑ^q ≤ c^q` on the lower integral.

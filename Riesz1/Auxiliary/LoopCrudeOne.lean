@@ -13,7 +13,7 @@ public import Riesz1.Auxiliary.LoopArcsIdentity
 /-!
 # The crude microscopic loop bound for one particle
 
-The crude part of Lemma 5.8, case `N = 1`: for one particle the loop functional is a
+The crude part of Lemma B.2, case `N = 1`: for one particle the loop functional is a
 deterministic quantity bounded by a constant times the sup of `|b'|` over the period. The
 arc decomposition needs `N ≥ 2`, so this case is proved directly from the singular kernel.
 -/

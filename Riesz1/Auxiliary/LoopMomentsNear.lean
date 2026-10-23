@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopMomentsRooted
 /-!
 # Short arcs and the rooted energy
 
-The moments part of Lemma 5.8, the claim on `∑_{z_i ∈ J} E_i` for an arc of length
+The moments part of Lemma B.2, the claim on `∑_{z_i ∈ J} E_i` for an arc of length
 `r ≤ 3`. Two particles of such an arc are at circular distance at most `r ≤ 3`, so each
 other particle of the arc contributes at least `3^{-s}` to the rooted energy of a particle `i`
 of the arc. This gives `M_J - 1 ≤ 3^s E_i` pointwise.
@@ -546,7 +546,7 @@ theorem lintegral_sum_short_arc_le (P : Parameters) {s : ℝ} (hs : 0 < s) {m : 
         congr 1
         field_simp
 
-/-- **Short-arc energy**, the moments part of Lemma 5.8 (the claim on
+/-- **Short-arc energy**, the moments part of Lemma B.2 (the claim on
 `∑_{z_i ∈ J} E_i` for `r ≤ 3`). For every `p ≥ 1` there is `C > 0`, depending only on `β, s, p`,
 such that every `N ≥ 2` and every arc of length `0 < r ≤ min(3, N)` satisfy
 `‖∑_{z_i ∈ J} E_i‖_{L^p} ≤ C`. -/

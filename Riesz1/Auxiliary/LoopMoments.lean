@@ -14,7 +14,7 @@ public import Riesz1.Auxiliary.LoopMomentsBlocks
 /-!
 # Counts, discrepancies and rooted moments of microscopic arcs
 
-The moments part of Lemma 5.8, all claims, conditionally on the rigidity conclusion
+The moments part of Lemma B.2, all claims, conditionally on the rigidity conclusion
 `Riesz1.Internal.RigidityConclusion` (see Theorem 1). The claims are:
 
 * counts: `‖M_J‖_{L^p} ≤ C(1 + r)` for every arc of length `r ≤ N`.
@@ -40,7 +40,7 @@ namespace Riesz1
 
 namespace Internal
 
-/-- **Counts, discrepancies and rooted moments**, the moments part of Lemma 5.8.
+/-- **Counts, discrepancies and rooted moments**, the moments part of Lemma B.2.
 Conditionally on the rigidity conclusion at `beta, s`. Each constant depends only on the model
 parameters, the exponent `p` and, for the last two claims, `δ`. It does not depend on `N`, the
 label `i`, the arc `J`, or `hPL`. -/

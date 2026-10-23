@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsParam
 /-!
 # The arc function as a pairing against a parameter measure
 
-The representation step of the arcs part of Lemma 5.8. For `t` off the
+The representation step of the arcs part of Lemma B.2. For `t` off the
 particle positions, the arc-crossing pairing `P_t = loopArcPairing N X (loopArcPhi s N t)` equals
 the function `Λ(t) = loopArcLambda s N X t`. This file proves that identity in three parts:
 

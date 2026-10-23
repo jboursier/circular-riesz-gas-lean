@@ -13,7 +13,7 @@ public import Riesz1.Rigidity.BlockMoments
 /-!
 # Moments of the rooted local inverse energy
 
-The moments part of Lemma 5.8, the claim `‖E_i‖_{L^p} ≤ C_{β,s,p}` for the rooted
+The moments part of Lemma B.2, the claim `‖E_i‖_{L^p} ≤ C_{β,s,p}` for the rooted
 energy `E_i = ∑_{j ≠ i, dist(z_i, z_j) ≤ 3} dist(z_i, z_j)^{-s}`.
 
 The distance from `z_i` to `z_j` is the norm of the block `S_{i,k} = N (x_{i+k} - x_i)`, where
@@ -299,7 +299,7 @@ theorem summable_rpow_neg_two_add {s : ℝ} (hs : 0 < s) :
     Summable (fun n : ℕ => (n : ℝ) ^ (-(s + 2))) :=
   Real.summable_nat_rpow.mpr (by linarith)
 
-/-- **Rooted moments**, the moments part of Lemma 5.8 (the bound `‖E_i‖_p ≤ C`).
+/-- **Rooted moments**, the moments part of Lemma B.2 (the bound `‖E_i‖_p ≤ C`).
 For every `p ≥ 1` there is `C > 0`, depending only on `β`, `s` and `p`, such that every
 particle number `N`, every label `i` and every `hPL` satisfy `‖E_i‖_{L^p} ≤ C`. -/
 theorem rootedEnergy_eLpNorm (P : Parameters) {s : ℝ} (hs : 0 < s) {p : ℝ} (hp : 1 ≤ p) :

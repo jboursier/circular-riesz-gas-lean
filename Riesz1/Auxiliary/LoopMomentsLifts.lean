@@ -10,7 +10,7 @@ public import Riesz1.Auxiliary.LoopMomentsDefs
 /-!
 # Integer lifts of the particles and their residues
 
-Deterministic facts used by the count moment estimate in Lemma 5.8:
+Deterministic facts used by the count moment estimate in Lemma B.2:
 
 * the gaps and the cyclic lifts are periodic with period `N` along the integers, the lift
   shifting by one period per `N` indices.

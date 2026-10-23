@@ -11,13 +11,13 @@ public import Riesz1.ToMathlib.IteratedDerivOpen
 /-!
 # The microscopic kernel and the cutoff `Q`
 
-Facts about `g_N = loopArcG s N` and about the cutoff `Q = loopArcQ s N`, used by Lemma 5.8:
+Facts about `g_N = loopArcG s N` and about the cutoff `Q = loopArcQ s N`, used by Lemma B.2:
 
 * `g_N` is `N`-periodic and even, `g_N'` is odd, and `g_N'(N/2) = 0`.
 * `g_N` is smooth on `(0, N)`, with all iterated derivatives smooth there.
 * for `0 < d < N/2`, the cutoff is the integral representation
   `Q(d) = ∫_d^{N/2} (r - d)(-g_N'''(r)) dr + (N/2 - d) g_N''(N/2)` (the elementary identity
-  of the proof of Lemma 5.8, obtained by integration by parts).
+  of the proof of Lemma B.2, obtained by integration by parts).
 
 The derivatives are the Mathlib derivatives. The kernel's singularity at the multiples of `N`
 lies outside `(0, N)`, where all the smoothness is used.
@@ -83,7 +83,7 @@ theorem contDiffOn_loopArcG (s : ℝ) (hs0 : 0 < s) (hs1 : s < 1) (N : ℕ+) :
     ((gradSplit_contDiffOn_kernel s hs0 hs1).comp (contDiffOn_id.div_const (N : ℝ)) hmaps)
 
 /-- **Integral representation of the cutoff**, the elementary identity of
-Lemma 5.8. For every `0 < d < N / 2`, integration by parts on `[d, N/2]`
+Lemma B.2. For every `0 < d < N / 2`, integration by parts on `[d, N/2]`
 gives `Q(d) = ∫_d^{N/2} (r - d)(-g_N'''(r)) dr + (N/2 - d) g_N''(N/2)`. -/
 theorem loopArcQ_eq_integral (s : ℝ) (hs0 : 0 < s) (hs1 : s < 1) (N : ℕ+) {d : ℝ}
     (hd0 : 0 < d) (hdR : d < (N : ℝ) / 2) :

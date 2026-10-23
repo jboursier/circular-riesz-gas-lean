@@ -13,7 +13,7 @@ public import Riesz1.Auxiliary.LoopArcsDerivs
 /-!
 # Pointwise majorant of the arc-crossing representation
 
-The arcs part of Lemma 5.8, the reduction of the cell estimate to lower integrals. The
+The arcs part of Lemma B.2, the reduction of the cell estimate to lower integrals. The
 representation `Λ(t)` is bounded in the lower-integral form by the iterated
 integral of the enorms of its integrands, for every `t` and every configuration. This is the
 first step of the `L^p` bound. The small, large and atomic parts are then estimated separately.

@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsLambda
 /-!
 # Lattice facts for the cell estimate of the arc-crossing representation
 
-Preparation for the `L^p` bound of the arcs part of Lemma 5.8.
+Preparation for the `L^p` bound of the arcs part of Lemma B.2.
 The particle positions are lifted to the line by `z_i + nN`, `n ∈ ℤ`, and the arcs of length at
 most `2` used in the cell estimate meet at most one lift of each particle. This file proves
 

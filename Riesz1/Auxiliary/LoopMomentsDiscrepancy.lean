@@ -13,7 +13,7 @@ public import Riesz1.ToMathlib.Moments.Decay
 /-!
 # Discrepancies of microscopic arcs
 
-The moments part of Lemma 5.8, the discrepancy claim: for `1 ≤ r ≤ N/2`,
+The moments part of Lemma B.2, the discrepancy claim: for `1 ≤ r ≤ N/2`,
 `‖ν(J)‖_{L^p} ≤ C r^{s/2+δ}`, where `ν(J) = M_J - |J|` and `δ` is below the rigidity threshold.
 
 The arc count at the centre `arcCentre N a r` with half length `arcRadius N r` is the count
@@ -122,7 +122,7 @@ theorem abs_sub_pow_le_two_pow {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) {k : �
 
 namespace Internal
 
-/-- **Discrepancy moments**, the moments part of Lemma 5.8 (the discrepancy bound
+/-- **Discrepancy moments**, the moments part of Lemma B.2 (the discrepancy bound
 `‖ν(J)‖_p ≤ C r^{s/2+δ}`). Conditionally on the rigidity conclusion at `beta, s`: there is a
 threshold `eps0 > 0` such that for every `0 < δ < min(s/2, eps0)` and every `p ≥ 1` there is
 `C > 0`, depending only on `beta, s, δ, p`, with `‖ν(J)‖_{L^p} ≤ C r^{s/2+δ}` for every `N ≥ 2`,

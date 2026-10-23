@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsLpMeasure
 /-!
 # Summing the pair term over lifts
 
-The arcs part of Lemma 5.8, small region. The pair integrand of
+The arcs part of Lemma B.2, small region. The pair integrand of
 `Riesz1.pairIntegrand` is summed over all lifts `z_i + nN` and `z_j + n'N` of pairs of particles.
 The window `(m - 1, m + 1)` of the left lift selects the particles `i` counted by the rooted
 energy `E_i = Riesz1.rootedEnergy`. This is the combinatorial step of the small-region estimate.

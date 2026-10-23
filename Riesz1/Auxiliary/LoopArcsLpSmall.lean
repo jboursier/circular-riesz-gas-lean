@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsLpMeasure
 /-!
 # The small region of the cell estimate
 
-The arcs part of Lemma 5.8, small region `u + v < 1`. The integrand of the cell
+The arcs part of Lemma B.2, small region `u + v < 1`. The integrand of the cell
 representation over `u, v > 0`, `u + v < 1`, after the bound `|g_N'''(r)| ≤ C r^{-s-3}` and the
 replacement of the arc discrepancies by `count ± arclength`, is controlled by the rooted energies
 of the particles in the windows of the cell. This file proves the bound.

@@ -12,7 +12,7 @@ public import Riesz1.Auxiliary.LoopMomentsDiscrepancy
 # Product kernels and arc discrepancies
 
 Preparation for the identification of the arc-crossing pairing with `Λ` (arcs part of
-Lemma 5.8). For `t` off the particle positions, the
+Lemma B.2). For `t` off the particle positions, the
 indicator kernels `(z, u) ↦ 1[fwd(t - z) < y] 1[fwd(u - t) < w]` are product kernels, and their
 pairing against `ν ⊗ ν` is the product of two discrepancies of arcs of `N𝕋`:
 

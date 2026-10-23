@@ -10,7 +10,7 @@ public import Riesz1.Auxiliary.LoopArcsRepresentation
 /-!
 # The arc pairing equals the arc function `Λ`
 
-The arcs part of Lemma 5.8: for `t` off the particle positions the
+The arcs part of Lemma B.2: for `t` off the particle positions the
 arc-crossing pairing of the cutoff kernel equals the function `Λ(t)` of `loopArcLambda`,
 
 `loopArcPairing N X (loopArcPhi s N t) = loopArcLambda s N X t`.
@@ -463,7 +463,7 @@ theorem integrable_atom_prod (N : ℕ+) (t : ℝ) (μ : Measure ℝ) [IsFiniteMe
 
 /-- **The arc pairing equals the arc function `Λ`.** For `t` off the particle positions,
 `loopArcPairing N X (loopArcPhi s N t) = loopArcLambda s N X t`, as in the paper and
-the representation step of the arcs part of Lemma 5.8. -/
+the representation step of the arcs part of Lemma B.2. -/
 theorem loopArcPairing_phi_eq_lambda (s : ℝ) (hs0 : 0 < s) (hs1 : s < 1) (N : ℕ+) (t : ℝ)
     (X : Configuration N)
     (ht : ∀ (i : Fin (N : ℕ)) (k : ℤ), t ≠ loopArcPos N X i + k * N) :
@@ -570,7 +570,7 @@ theorem ae_off_particles (N : ℕ+) (X : Configuration N) :
   exact ht
 
 /-- **The loop functional as an integral of `Λ`.** For every configuration, every `C¹` periodic
-`b` with period `N`: `L(b) = -2 ∫₀^N b'(t) Λ(t) dt`, the identity of the arcs part of Lemma 5.8.
+`b` with period `N`: `L(b) = -2 ∫₀^N b'(t) Λ(t) dt`, the identity of the arcs part of Lemma B.2.
 The integral is the interval integral over `(0, N]`. -/
 theorem loopArcL_eq_integral_lambda (s : ℝ) (hs0 : 0 < s) (hs1 : s < 1) (N : ℕ+) (b : ℝ → ℝ)
     (hb : ContDiff ℝ 1 b) (hper : Function.Periodic b (N : ℝ)) (X : Configuration N) :

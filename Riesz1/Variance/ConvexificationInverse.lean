@@ -25,7 +25,7 @@ The proof has two steps, which this file formalizes in their variational form.
 
 Here `anchoredInverseSup V y v` is the variational supremum of the Hessian form, which is the
 Brascamp–Lieb expression for the inverse energy. It bounds the inverse energy `∫ v · A_1^{-1} v`
-from above. That bound, the vector Brascamp–Lieb inequality (part of Lemma 3.5), is not
+from above. That bound, the vector Brascamp–Lieb inequality ((3.10), stated after Lemma 3.5), is not
 formalized in this file.
 -/
 

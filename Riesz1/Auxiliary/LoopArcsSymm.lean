@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopArcsBounds
 /-!
 # Symmetry of the pairing and integrability of the arc kernel
 
-Preparation for the arcs part of Lemma 5.8. This file proves
+Preparation for the arcs part of Lemma B.2. This file proves
 the facts that let the arc kernel `Φ_t` be integrated against `ν ⊗ ν`:
 
 * `loopArcPairing_swap`: the pairing is invariant under exchanging the two arguments of the kernel.
@@ -466,7 +466,7 @@ theorem loopArcKernel_eq_integral_add (s : ℝ) (N : ℕ+) (b : ℝ → ℝ) (hb
 /-- **The loop functional as an arc integral.** For a `C¹` `N`-periodic `b`, and every
 configuration `X`, the loop functional is `L(b) = -2 ∫₀^N b'(t) P_t dt`, where
 `P_t = loopArcPairing N X (Φ_t)` is the pairing of the arc kernel `Φ_t` against `ν ⊗ ν`. This is
-the first step of the arcs part of Lemma 5.8. The identification of `P_t` with `Λ(t)`
+the first step of the arcs part of Lemma B.2. The identification of `P_t` with `Λ(t)`
 is the next step. -/
 theorem loopArcL_eq_integral_pairing (s : ℝ) (hs0 : 0 < s) (hs1 : s < 1) (N : ℕ+) (b : ℝ → ℝ)
     (hb : ContDiff ℝ 1 b) (hper : Function.Periodic b (N : ℝ)) (X : Configuration N) :

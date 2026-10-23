@@ -13,7 +13,7 @@ public import Riesz1.ToMathlib.LintegralPowerTail
 /-!
 # The large region of the cell estimate
 
-The arcs part of Lemma 5.8, large region `u + v ≥ 1`. The integrand
+The arcs part of Lemma B.2, large region `u + v ≥ 1`. The integrand
 `‖g_N'''(u+v)‖ ‖A_t(u)‖ ‖B_t(v)‖` over `0 < u ≤ N/2`, `0 < v ≤ N/2 - u`, `u + v ≥ 1` and the unit
 cell in `t` has `L^p` norm in the configuration bounded uniformly in `N` and the cell.
 

@@ -14,7 +14,7 @@ For a configuration `X` and an arc `microArc N a r` with `0 < r ≤ N`, the inte
 `j` whose positions `N cyclicLift X j` lie in `(a, a + r)` form a run of consecutive integers
 `c, c+1, …, d`. The `m` particles of the arc therefore have `m - 1` consecutive gaps, whose sum
 is less than `r`. This is the deterministic core of the count moment estimate of
-Lemma 5.8, the bound `(M_J - 1)_+^{q+1} ≤ r^q ∑ 1_J(z_i) y_i^{-q}`.
+Lemma B.2, the bound `(M_J - 1)_+^{q+1} ≤ r^q ∑ 1_J(z_i) y_i^{-q}`.
 -/
 
 @[expose] public section

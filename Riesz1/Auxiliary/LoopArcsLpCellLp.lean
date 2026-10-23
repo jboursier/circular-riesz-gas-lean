@@ -14,7 +14,7 @@ public import Riesz1.Auxiliary.LoopArcsIdentity
 /-!
 # The `L^p` bound of the arc-crossing representation over a cell
 
-The arcs part of Lemma 5.8, the `L^p` clause: for `N ≥ 2`, every integer `0 ≤ m < N`,
+The arcs part of Lemma B.2, the `L^p` clause: for `N ≥ 2`, every integer `0 ≤ m < N`,
 `‖∫_m^{m+1} |Λ(t)| dt‖_p ≤ C_{β,s,p}`, with `C` chosen before `N`, `m` and the smooth periodic
 test function. The cell bound `lintegral_cell_three_bound` splits the `t`-integral into the small
 counts and energies, the large region and the atom. Each part has a bounded `p`-th moment by the
@@ -209,7 +209,7 @@ theorem lintegral_add_four' {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) 
     _ = _ := by rw [show (∫⁻ x, (fun x => f x + g x + h x) x ∂μ)
           = ∫⁻ x, f x + g x + h x ∂μ from rfl, lintegral_add_three' μ hf hg hh]
 
-/-- **The `L^p` clause of the arcs part of Lemma 5.8, conditional on rigidity.** For `p ≥ 1` there
+/-- **The `L^p` clause of the arcs part of Lemma B.2, conditional on rigidity.** For `p ≥ 1` there
 is `C > 0` such that for every `N ≥ 2`, every integer `0 ≤ m < N` and the Prékopa–Leindler inequality
 `External.PrekopaLeindler`, the `L^p` norm over the configuration of `∫_m^{m+1} |Λ(t)| dt` is at
 most `C`. The constant does not depend on `N`, `m`. -/

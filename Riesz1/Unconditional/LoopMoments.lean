@@ -20,7 +20,7 @@ Restatements of the conditional theorems
 The inner `∀ (_hPL : External.PrekopaLeindler)` binders of the conditional statements are
 removed, since the external is now an argument.
 
-These restatements cover the open-arc claims of the moments part of Lemma 5.8. The closed and
+These restatements cover the open-arc claims of the moments part of Lemma B.2. The closed and
 half-open arcs are treated in `Riesz1.auxiliary_Loop_moments_arcs`.
 -/
 
@@ -35,7 +35,7 @@ attribute [local instance] Classical.propDecidable
 
 namespace Riesz1
 
-/-- The open-arc moment bounds of Lemma 5.8, with the externals as hypotheses. -/
+/-- The open-arc moment bounds of Lemma B.2, with the externals as hypotheses. -/
 theorem auxiliary_Loop_moments (hBE : External.BakryEmery) (hPL : External.PrekopaLeindler)
     (beta s : ℝ) (hbeta : 0 < beta) (hs : 0 < s) (hs1 : s < 1) :
     (∀ p : ℝ, 1 ≤ p → ∃ C : ℝ, 0 < C ∧ ∀ (N : ℕ+),

@@ -11,7 +11,7 @@ public import Riesz1.Rigidity.RigidityTheorem
 /-!
 # Arc representation and crude loop bounds with explicit external inputs
 
-The arcs and crude parts of Lemma 5.8.
+The arcs and crude parts of Lemma B.2.
 Rigidity is supplied through the external inputs `External.BakryEmery` and
 `External.PrekopaLeindler`. The tests may be any periodic `C¹`
 functions, and the crude bound includes the one-particle case.
@@ -26,7 +26,7 @@ open scoped ENNReal
 
 namespace Riesz1
 
-/-- The arcs part of Lemma 5.8: integrability, the exact arc identity,
+/-- The arcs part of Lemma B.2: integrability, the exact arc identity,
 and uniform cell moments, with constants chosen before the particle number. -/
 theorem auxiliary_Loop_arcs
     (hBE : External.BakryEmery) (hPL : External.PrekopaLeindler)
@@ -47,7 +47,7 @@ theorem auxiliary_Loop_arcs
     (Internal.rigidityConclusion_of_externals hBE hPL beta s hbeta hs hs1) hp
   exact ⟨C, hC, h hPL⟩
 
-/-- The crude part of Lemma 5.8, including `N = 1`, with a strictly
+/-- The crude part of Lemma B.2, including `N = 1`, with a strictly
 positive constant and only the Bakry–Émery criterion `External.BakryEmery` and the
 Prékopa–Leindler inequality `External.PrekopaLeindler` as additional inputs. -/
 theorem auxiliary_Loop_crude

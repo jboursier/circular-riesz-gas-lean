@@ -10,7 +10,7 @@ public import Riesz1.Auxiliary.LoopArcsLpCellLp
 /-!
 # The complete arc lemma: identity, integrability and `L^p` bound
 
-Lemma 5.8, assembled from its three claims:
+Lemma B.2, assembled from its three claims:
 
 * `Λ` is arclength integrable on `N𝕋` (here: `IntegrableOn` on `(0, N]`), for every configuration.
 * the loop functional is the arc integral `L(b) = -2 ∫_{N𝕋} b' Λ`, for every configuration.
@@ -31,7 +31,7 @@ open scoped ENNReal
 
 namespace Riesz1
 
-/-- **Complete arc lemma**, Lemma 5.8, conditional on the rigidity
+/-- **Complete arc lemma**, Lemma B.2, conditional on the rigidity
 conclusion. There is `C > 0` such that for every `N ≥ 2`, every `C¹` `N`-periodic `b` and every
 integer `0 ≤ m < N`: the function `Λ` is arclength integrable on `N𝕋` for every configuration,
 `L(b) = -2 ∫_{N𝕋} b' Λ` for every configuration, and the `L^p` norm of `∫_m^{m+1} |Λ|` is at most

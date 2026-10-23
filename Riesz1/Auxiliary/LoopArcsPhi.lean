@@ -11,7 +11,7 @@ public import Mathlib.MeasureTheory.Function.Floor
 /-!
 # Forward distances and the arc kernel `Φ_t`
 
-For the arc-crossing representation of Lemma 5.8, every pair `(z, u)` of
+For the arc-crossing representation of Lemma B.2, every pair `(z, u)` of
 points of the microscopic circle is written through the forward distance `loopArcFwd N x ∈ [0, N)`
 of `x` modulo `N`, and the kernel
 

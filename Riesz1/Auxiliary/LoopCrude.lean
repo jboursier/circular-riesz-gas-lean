@@ -11,7 +11,7 @@ public import Riesz1.Auxiliary.LoopCrudeOne
 /-!
 # The crude microscopic loop bound
 
-The crude part of Lemma 5.8: for `C¹` `N`-periodic `b`,
+The crude part of Lemma B.2: for `C¹` `N`-periodic `b`,
 `‖L(b)‖_{L^p} ≤ C_{β,s,p} ∑_{m=0}^{N-1} sup_{z∈[m,m+1]} |b'(z)|`, uniformly in `N`.
 
 For `N ≥ 2` the identity `L(b) = -2 ∫_{N𝕋} b' Λ` splits into the `N` unit cells and the cell `L^p`
@@ -152,7 +152,7 @@ theorem stronglyMeasurable_cellAbs {s : ℝ} (N : ℕ+) (m : ℝ) :
     simpa only [Real.norm_eq_abs] using h0
   exact hsm.integral_prod_right' (ν := volume.restrict (Ioc m (m + 1)))
 
-/-- **Crude microscopic loop bound**, the crude part of Lemma 5.8, conditional on the
+/-- **Crude microscopic loop bound**, the crude part of Lemma B.2, conditional on the
 rigidity conclusion. There is `C ≥ 0` such that, assuming the Prékopa–Leindler inequality
 `External.PrekopaLeindler`, every `N` and every `C¹` `N`-periodic `b` satisfy
 `‖L(b)‖_{L^p} ≤ C ∑_{m=0}^{N-1} sup_{z∈[m,m+1]} |b'(z)|`. -/
