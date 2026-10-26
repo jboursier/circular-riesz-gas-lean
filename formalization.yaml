@@ -118,8 +118,8 @@ automation:
   spend_usd: "not tracked"
   notes: >-
     The Lean code was written with AI assistance under the direction of the author, who fixed
-    the statements to be formalized. Every proof is checked by the Lean kernel and Mathlib, and
-    the library contains no sorry and no custom axiom. The five Mathlib-only comparator
+    the statements to be formalized. Every proof is checked by the Lean kernel, and the
+    library contains no sorry and no custom axiom. The five Mathlib-only comparator
     challenge files (Riesz1Audit/*/Challenge.lean) each contain exactly one intentional
     statement-level sorry, which the corresponding Solution.lean proves and leanprover/comparator
     checks. The revision of the paper that this repository formalizes was prepared with
@@ -151,12 +151,12 @@ review:
     - "GPT-6.1 Sol, independent refute-first audits of every statement and definition"
     - "Claude Haiku 5.5, blind back-translation of every statement and definition"
   notes: >-
-    Every proof is checked by the Lean kernel and Mathlib, and the five main statements are
+    Every proof is checked by the Lean kernel, and the five main statements are
     additionally replayed by independent kernels through leanprover/comparator. The statements
     and the definitions they use were written before the proofs and compared with the paper by
     refute-first audits of agents that did not write them, including a blind back-translation
     of the Lean text into mathematics. Riesz1/Sanity/ checks the definitions against known
-    values. This is an agent review, not an external peer review.
+    values.
 
 alignment:
   namespace: "Riesz1"
